@@ -1,14 +1,16 @@
 # --- Core Backend Framework ---
 fastapi==0.110.0
-uvicorn==0.29.0
+uvicorn[standard]==0.29.0
 
 # --- PDF Processing ---
 PyPDF2==3.0.1
 pdfminer.six==20221105
 
 # --- Machine Learning / Embeddings ---
-sentence-transformers==2.2.2
+sentence-transformers>=2.7.0       # upgraded for HuggingFace compatibility
 torch>=2.0.0
+transformers>=4.40.0               # ensure latest features
+huggingface-hub>=0.22.0            # needed for hf_hub_download API
 
 # --- Vector Database (Qdrant) ---
 qdrant-client==1.7.3
@@ -31,4 +33,5 @@ requests==2.31.0
 # --- Optional ---
 httpx==0.27.0  # For async API calls if needed
 
-python-multipart
+# --- File Upload Support ---
+python-multipart>=0.0.6
