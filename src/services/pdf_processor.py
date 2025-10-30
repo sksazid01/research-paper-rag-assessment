@@ -17,35 +17,84 @@ SECTION_PATTERNS = [
 ]
 
 
+def _is_valid_title(text: str) -> bool:
+    """Check if extracted text is a valid paper title."""
+    if not text or len(text.strip()) < 10:
+        return False
+    
+    text = text.strip()
+    
+    # Reject if it's just numbers, dots, or too short
+    if re.match(r'^[\d\s\.\,\-]+$', text):
+        return False
+    
+    # Reject if it's mostly numbers (like "253 255..260")
+    words = text.split()
+    if len(words) > 0:
+        numeric_words = sum(1 for w in words if re.match(r'^\d+[\.\,\-\:]*$', w))
+        if numeric_words / len(words) > 0.5:  # More than 50% numeric
+            return False
+    
+    # Reject common non-title patterns
+    reject_patterns = [
+        r'^(page|pg\.?)\s*\d+',  # "Page 1"
+        r'^\d+\s*(of|\/)?\s*\d+$',  # "1 of 10" or "1/10"
+        r'^[\d\s\-\.]+$',  # Only numbers and separators
+        r'^(figure|fig|table|tbl)\.?\s*\d+',  # "Figure 1"
+    ]
+    
+    for pattern in reject_patterns:
+        if re.match(pattern, text, re.I):
+            return False
+    
+    return True
+
+
 def _extract_pdf_metadata(file_path: str) -> Dict:
     reader = PdfReader(file_path)
     info = reader.metadata or {}
     title = getattr(info, "title", None) or None
+    
+    # Validate metadata title
+    if title and not _is_valid_title(title):
+        title = None
+    
     authors = getattr(info, "author", None) or None
 
     # Fallback heuristics from first page text
     first_page_text = reader.pages[0].extract_text() or ""
     if not title:
-        # Use first non-empty line before Abstract
-        for line in first_page_text.splitlines():
-            if line.strip() and not any(pat.search(line) for _, pat in SECTION_PATTERNS):
-                title = line.strip()
-                break
+        # Use first non-empty line before Abstract that looks like a title
+        for line in first_page_text.splitlines()[:20]:  # Check first 20 lines only
+            line_stripped = line.strip()
+            if line_stripped and _is_valid_title(line_stripped):
+                # Check it's not a section heading
+                is_section = any(pat.search(line_stripped) for _, pat in SECTION_PATTERNS)
+                if not is_section:
+                    title = line_stripped
+                    break
+    
     if not authors:
         lines = [l.strip() for l in first_page_text.splitlines() if l.strip()]
         if lines:
             # assume authors appear right after title until Abstract
             try:
-                t_idx = lines.index(title) if title in lines else 0
+                t_idx = lines.index(title) if title and title in lines else 0
             except ValueError:
                 t_idx = 0
             author_lines = []
-            for l in lines[t_idx + 1 : t_idx + 6]:
+            for l in lines[t_idx + 1 : min(t_idx + 8, len(lines))]:
+                # Stop at section headers
                 if any(pat.search(l) for _, pat in SECTION_PATTERNS):
                     break
-                author_lines.append(l)
+                # Stop at lines that look like institutions/affiliations (contain numbers or URLs)
+                if re.search(r'(university|institute|department|@|http|www\.|\d{5})', l, re.I):
+                    break
+                # Only include if it looks like names (has proper capitalization, reasonable length)
+                if 5 < len(l) < 100 and not l.isupper() and not l.islower():
+                    author_lines.append(l)
             if author_lines:
-                authors = ", ".join(author_lines)
+                authors = ", ".join(author_lines[:3])  # Limit to first 3 lines
 
     year_match = re.search(r"(19|20)\d{2}", first_page_text)
     year = year_match.group(0) if year_match else None
