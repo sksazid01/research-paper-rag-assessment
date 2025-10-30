@@ -55,6 +55,8 @@ cp .env.example .env
 - ✅ **Vector Search** - Semantic search using Qdrant vector database
 - ✅ **Citation Extraction** - Automatic citation mapping with source tracking
 - ✅ **Confidence Scoring** - AI-generated confidence levels for answers
+- ✅ **Query History & Analytics** - Track queries and view popular topics
+- 🎨 **Modern Web UI** - Next.js/React frontend with beautiful interface
 
 ### Technical Features
 - 🐳 **Docker-Based** - One-command deployment
@@ -63,6 +65,7 @@ cp .env.example .env
 - 🔍 **Qdrant Vector DB** - Fast similarity search
 - 🤖 **Ollama Integration** - Local LLM for answer generation
 - 📊 **Structured Responses** - JSON API with proper error handling
+- 🎨 **Web Interface** - Beautiful, responsive UI built with Next.js & Tailwind CSS
 
 ---
 
@@ -114,6 +117,78 @@ cp .env.example .env
 │  • No API costs                 │
 └─────────────────────────────────┘
 ```
+
+### System Architecture Diagram (Mermaid)
+
+```mermaid
+graph TB
+    Client[Client/User]
+    
+    subgraph "FastAPI Application :8000"
+        API[API Routes]
+        Ingestion[Document Ingestion Pipeline]
+        RAG[RAG Query Pipeline]
+        
+        subgraph "Services Layer"
+            PDF[PDF Processor]
+            Chunk[Chunking Service]
+            Embed[Embedding Service]
+            RAGPipe[RAG Service]
+            Ollama[Ollama Client]
+        end
+        
+        subgraph "Models Layer"
+            DB[Database Models]
+        end
+    end
+    
+    subgraph "Data Storage"
+        Postgres[(PostgreSQL :5433<br/>Paper Metadata)]
+        Qdrant[(Qdrant :6333<br/>Vector Store)]
+    end
+    
+    subgraph "External Services"
+        OllamaLLM[Ollama LLM Server :11434<br/>llama3 Model]
+    end
+    
+    Client -->|HTTP Requests| API
+    
+    API -->|Upload PDF| Ingestion
+    Ingestion --> PDF
+    PDF --> Chunk
+    Chunk --> Embed
+    Embed -->|Store Vectors| Qdrant
+    Embed -->|Store Metadata| Postgres
+    
+    API -->|Query| RAG
+    RAG --> RAGPipe
+    RAGPipe -->|Retrieve Context| Qdrant
+    RAGPipe -->|Get Papers| Postgres
+    RAGPipe -->|Generate Answer| Ollama
+    Ollama -->|HTTP API| OllamaLLM
+    OllamaLLM -->|LLM Response| Ollama
+    RAGPipe -->|Save History| DB
+    DB --> Postgres
+    
+    style API fill:#4a90e2
+    style Ingestion fill:#50c878
+    style RAG fill:#9b59b6
+    style Postgres fill:#f39c12
+    style Qdrant fill:#e74c3c
+    style OllamaLLM fill:#16a085
+```
+
+**Key Components:**
+- **FastAPI**: REST API layer handling HTTP requests
+- **Document Ingestion**: Processes PDFs → chunks → embeddings → storage
+- **RAG Pipeline**: Query → retrieval → context assembly → LLM generation
+- **PostgreSQL**: Stores paper metadata, query history, and analytics
+- **Qdrant**: Vector database for semantic similarity search
+- **Ollama**: Local LLM server running llama3 model
+
+**Data Flow:**
+1. **Upload**: PDF → Extract text → Chunk → Generate embeddings → Store in Qdrant + PostgreSQL
+2. **Query**: User question → Embed query → Search Qdrant → Assemble context → Generate answer with Ollama → Return with citations
 
 ---
 
@@ -545,6 +620,44 @@ docker-compose ps
 # Enter API container
 docker exec -it rag_api bash
 ```
+
+---
+
+## 🎨 Web Interface
+
+### Setup Frontend (Optional)
+
+The project includes a modern Next.js web interface for easier interaction:
+
+```bash
+# Navigate to frontend directory
+cd frontend
+
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev
+
+# Open browser at http://localhost:3000
+```
+
+**Features:**
+- 📤 Upload papers with drag & drop
+- 🔍 Query papers with real-time results
+- 📚 View and manage all papers
+- 📊 Paper statistics and analytics
+- 📜 Query history tracking
+- 📈 Popular topics visualization
+
+**Tech Stack:**
+- Next.js 14 (App Router)
+- TypeScript
+- Tailwind CSS
+- Lucide Icons
+- Axios for API calls
+
+See `frontend/README.md` for detailed documentation.
 
 ---
 

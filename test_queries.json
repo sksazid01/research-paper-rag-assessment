@@ -1,0 +1,184 @@
+{
+  "test_queries": [
+    {
+      "id": 1,
+      "complexity": "easy",
+      "category": "factual",
+      "query": "What is machine learning?",
+      "description": "Basic definition query - tests simple factual retrieval"
+    },
+    {
+      "id": 2,
+      "complexity": "easy",
+      "category": "factual",
+      "query": "What are the main types of neural networks?",
+      "description": "Simple enumeration query - tests list extraction"
+    },
+    {
+      "id": 3,
+      "complexity": "easy",
+      "category": "definition",
+      "query": "Define natural language processing.",
+      "description": "Definition query - tests terminology extraction"
+    },
+    {
+      "id": 4,
+      "complexity": "easy",
+      "category": "factual",
+      "query": "What is the purpose of backpropagation?",
+      "description": "Single concept explanation - tests focused retrieval"
+    },
+    {
+      "id": 5,
+      "complexity": "medium",
+      "category": "comparison",
+      "query": "Compare supervised and unsupervised learning approaches.",
+      "description": "Comparison query - tests multi-concept synthesis"
+    },
+    {
+      "id": 6,
+      "complexity": "medium",
+      "category": "methodology",
+      "query": "How do transformers improve upon traditional RNN architectures?",
+      "description": "Methodological comparison - tests understanding of improvements"
+    },
+    {
+      "id": 7,
+      "complexity": "medium",
+      "category": "application",
+      "query": "What are the common applications of computer vision in healthcare?",
+      "description": "Domain-specific application query - tests cross-domain knowledge"
+    },
+    {
+      "id": 8,
+      "complexity": "medium",
+      "category": "process",
+      "query": "Describe the training process for deep neural networks.",
+      "description": "Process explanation - tests sequential understanding"
+    },
+    {
+      "id": 9,
+      "complexity": "medium",
+      "category": "problem-solving",
+      "query": "What techniques can address the vanishing gradient problem?",
+      "description": "Problem-solution query - tests causal reasoning"
+    },
+    {
+      "id": 10,
+      "complexity": "medium",
+      "category": "advantages",
+      "query": "What are the advantages of using attention mechanisms?",
+      "description": "Benefit enumeration - tests analytical retrieval"
+    },
+    {
+      "id": 11,
+      "complexity": "hard",
+      "category": "multi-hop",
+      "query": "How do pre-trained language models like BERT leverage transfer learning, and what makes them effective for downstream tasks?",
+      "description": "Multi-hop reasoning - tests connecting multiple concepts"
+    },
+    {
+      "id": 12,
+      "complexity": "hard",
+      "category": "synthesis",
+      "query": "Explain the relationship between overfitting, regularization techniques, and model generalization.",
+      "description": "Conceptual synthesis - tests understanding of interdependencies"
+    },
+    {
+      "id": 13,
+      "complexity": "hard",
+      "category": "comparative-analysis",
+      "query": "What are the trade-offs between model accuracy and computational efficiency in deep learning?",
+      "description": "Trade-off analysis - tests nuanced understanding"
+    },
+    {
+      "id": 14,
+      "complexity": "hard",
+      "category": "evaluation",
+      "query": "How should one evaluate the performance of a reinforcement learning agent in a complex environment?",
+      "description": "Evaluation methodology - tests practical application knowledge"
+    },
+    {
+      "id": 15,
+      "complexity": "hard",
+      "category": "architectural",
+      "query": "Compare the architectural differences between CNNs and Vision Transformers, and explain when each is more suitable.",
+      "description": "Deep architectural comparison - tests technical depth"
+    },
+    {
+      "id": 16,
+      "complexity": "hard",
+      "category": "ethical",
+      "query": "What are the main ethical concerns related to bias in AI models, and how can they be mitigated?",
+      "description": "Ethical considerations - tests broader AI understanding"
+    },
+    {
+      "id": 17,
+      "complexity": "medium",
+      "category": "specific-technique",
+      "query": "How does dropout prevent overfitting in neural networks?",
+      "description": "Specific technique explanation - tests mechanistic understanding"
+    },
+    {
+      "id": 18,
+      "complexity": "easy",
+      "category": "history",
+      "query": "Who introduced the concept of deep learning?",
+      "description": "Historical query - tests context retrieval"
+    },
+    {
+      "id": 19,
+      "complexity": "hard",
+      "category": "optimization",
+      "query": "Explain how Adam optimizer adapts learning rates and why it's preferred over SGD in many scenarios.",
+      "description": "Optimization algorithm analysis - tests mathematical understanding"
+    },
+    {
+      "id": 20,
+      "complexity": "medium",
+      "category": "data-preprocessing",
+      "query": "What preprocessing steps are typically required for text data before feeding it to NLP models?",
+      "description": "Data pipeline query - tests practical workflow knowledge"
+    }
+  ],
+  "usage_instructions": {
+    "description": "This file contains 20 test queries across three complexity levels (easy, medium, hard) covering various categories of questions.",
+    "complexity_distribution": {
+      "easy": 5,
+      "medium": 8,
+      "hard": 7
+    },
+    "categories": [
+      "factual",
+      "definition",
+      "comparison",
+      "methodology",
+      "application",
+      "process",
+      "problem-solving",
+      "advantages",
+      "multi-hop",
+      "synthesis",
+      "comparative-analysis",
+      "evaluation",
+      "architectural",
+      "ethical",
+      "specific-technique",
+      "history",
+      "optimization",
+      "data-preprocessing"
+    ],
+    "testing_approach": [
+      "Start with easy queries to verify basic retrieval works",
+      "Progress to medium queries to test cross-section synthesis",
+      "Use hard queries to evaluate multi-hop reasoning and nuanced understanding",
+      "Check citation quality across all complexity levels",
+      "Verify confidence scores correlate with retrieval quality"
+    ],
+    "expected_outcomes": {
+      "easy": "High confidence (0.8-1.0), clear citations, direct answers",
+      "medium": "Moderate-high confidence (0.6-0.9), multiple sources, synthesized answers",
+      "hard": "Moderate confidence (0.5-0.8), complex reasoning, may require multiple papers"
+    }
+  }
+}
