@@ -1,0 +1,40 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Git
+.git/
+.gitignore
+
+# Docker
+.dockerignore
+docker-compose.yml
+Dockerfile
+
+# Documentation
+*.md
+!README.md
+
+# Test files
+tests/
+temp/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Hugging Face cache (will be downloaded at runtime)
+.cache/

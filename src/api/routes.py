@@ -184,3 +184,270 @@ async def query_papers(
         print(f"[ERROR] Query failed: {e}")
         print(traceback.format_exc())
         raise HTTPException(status_code=500, detail=f"Query processing failed: {str(e)}")
+
+
+# ============================================================================
+# Paper Management Endpoints
+# ============================================================================
+
+@router.get("/papers")
+async def list_papers():
+    """
+    List all papers in the database.
+    
+    Returns:
+    {
+      "papers": [
+        {
+          "id": 1,
+          "title": "Sustainability in Blockchain",
+          "authors": "Hani Alshahrani, ...",
+          "year": "2023",
+          "filename": "paper_1.pdf",
+          "pages": 24,
+          "created_at": "2025-10-30T12:00:00"
+        }
+      ],
+      "total": 1
+    }
+    """
+    try:
+        from ..models.db import SessionLocal, Paper
+        
+        with SessionLocal() as session:
+            papers = session.query(Paper).order_by(Paper.created_at.desc()).all()
+            
+            result = []
+            for paper in papers:
+                result.append({
+                    "id": paper.id,
+                    "title": paper.title,
+                    "authors": paper.authors,
+                    "year": paper.year,
+                    "filename": paper.filename,
+                    "pages": paper.pages,
+                    "created_at": paper.created_at.isoformat() if paper.created_at else None
+                })
+            
+            return {"papers": result, "total": len(result)}
+    
+    except Exception as e:
+        import traceback
+        print(f"[ERROR] List papers failed: {e}")
+        print(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=f"Failed to list papers: {str(e)}")
+
+
+@router.get("/papers/{paper_id}")
+async def get_paper(paper_id: int):
+    """
+    Get details of a specific paper by ID.
+    
+    Returns:
+    {
+      "id": 1,
+      "title": "Sustainability in Blockchain",
+      "authors": "Hani Alshahrani, ...",
+      "year": "2023",
+      "filename": "paper_1.pdf",
+      "pages": 24,
+      "created_at": "2025-10-30T12:00:00"
+    }
+    """
+    try:
+        from ..models.db import SessionLocal, Paper
+        
+        with SessionLocal() as session:
+            paper = session.query(Paper).filter(Paper.id == paper_id).first()
+            
+            if not paper:
+                raise HTTPException(status_code=404, detail=f"Paper with ID {paper_id} not found")
+            
+            return {
+                "id": paper.id,
+                "title": paper.title,
+                "authors": paper.authors,
+                "year": paper.year,
+                "filename": paper.filename,
+                "pages": paper.pages,
+                "created_at": paper.created_at.isoformat() if paper.created_at else None
+            }
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        import traceback
+        print(f"[ERROR] Get paper failed: {e}")
+        print(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=f"Failed to get paper: {str(e)}")
+
+
+@router.delete("/papers/{paper_id}")
+async def delete_paper(paper_id: int):
+    """
+    Delete a paper from the database and remove its vectors from Qdrant.
+    
+    Returns:
+    {
+      "message": "Paper deleted successfully",
+      "paper_id": 1,
+      "vectors_deleted": 119
+    }
+    """
+    try:
+        from ..models.db import SessionLocal, Paper
+        from qdrant_client.http import models as qdrant_models
+        
+        with SessionLocal() as session:
+            paper = session.query(Paper).filter(Paper.id == paper_id).first()
+            
+            if not paper:
+                raise HTTPException(status_code=404, detail=f"Paper with ID {paper_id} not found")
+            
+            paper_title = paper.title or paper.filename
+            
+            # Delete vectors from Qdrant
+            try:
+                # Delete all points where paper_id matches
+                qdrant_client.client.delete(
+                    collection_name=qdrant_client.COLLECTION_NAME,
+                    points_selector=qdrant_models.FilterSelector(
+                        filter=qdrant_models.Filter(
+                            must=[
+                                qdrant_models.FieldCondition(
+                                    key="paper_id",
+                                    match=qdrant_models.MatchValue(value=paper_id)
+                                )
+                            ]
+                        )
+                    )
+                )
+                vectors_deleted = True
+            except Exception as e:
+                print(f"[WARNING] Failed to delete vectors from Qdrant: {e}")
+                vectors_deleted = False
+            
+            # Delete paper from database
+            session.delete(paper)
+            session.commit()
+            
+            return {
+                "message": "Paper deleted successfully",
+                "paper_id": paper_id,
+                "paper_title": paper_title,
+                "vectors_deleted": vectors_deleted
+            }
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        import traceback
+        print(f"[ERROR] Delete paper failed: {e}")
+        print(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=f"Failed to delete paper: {str(e)}")
+
+
+@router.get("/papers/{paper_id}/stats")
+async def get_paper_stats(paper_id: int):
+    """
+    Get statistics for a specific paper.
+    
+    Returns:
+    {
+      "paper_id": 1,
+      "title": "Sustainability in Blockchain",
+      "filename": "paper_1.pdf",
+      "pages": 24,
+      "total_chunks": 119,
+      "sections": {
+        "Abstract": 7,
+        "Introduction": 35,
+        "Methods": 12,
+        "Results": 33,
+        "Discussion": 1,
+        "Conclusion": 4,
+        "References": 27
+      },
+      "avg_chunk_length": 450,
+      "created_at": "2025-10-30T12:00:00"
+    }
+    """
+    try:
+        from ..models.db import SessionLocal, Paper
+        from collections import Counter
+        
+        with SessionLocal() as session:
+            paper = session.query(Paper).filter(Paper.id == paper_id).first()
+            
+            if not paper:
+                raise HTTPException(status_code=404, detail=f"Paper with ID {paper_id} not found")
+            
+            # Query Qdrant for all chunks of this paper
+            try:
+                from qdrant_client.http import models as qdrant_models
+                
+                # Scroll through all points for this paper
+                scroll_result = qdrant_client.client.scroll(
+                    collection_name=qdrant_client.COLLECTION_NAME,
+                    scroll_filter=qdrant_models.Filter(
+                        must=[
+                            qdrant_models.FieldCondition(
+                                key="paper_id",
+                                match=qdrant_models.MatchValue(value=paper_id)
+                            )
+                        ]
+                    ),
+                    limit=1000,  # Get up to 1000 chunks
+                    with_payload=True,
+                    with_vectors=False
+                )
+                
+                chunks = scroll_result[0] if scroll_result else []
+                
+                # Calculate statistics
+                sections = Counter()
+                chunk_lengths = []
+                
+                for point in chunks:
+                    payload = point.payload or {}
+                    section = payload.get("section", "Unknown")
+                    text = payload.get("text", "")
+                    
+                    sections[section] += 1
+                    chunk_lengths.append(len(text))
+                
+                avg_chunk_length = int(sum(chunk_lengths) / len(chunk_lengths)) if chunk_lengths else 0
+                
+                return {
+                    "paper_id": paper.id,
+                    "title": paper.title,
+                    "filename": paper.filename,
+                    "pages": paper.pages,
+                    "total_chunks": len(chunks),
+                    "sections": dict(sections),
+                    "avg_chunk_length": avg_chunk_length,
+                    "created_at": paper.created_at.isoformat() if paper.created_at else None
+                }
+                
+            except Exception as e:
+                print(f"[WARNING] Failed to get chunk stats from Qdrant: {e}")
+                # Return basic stats without chunk information
+                return {
+                    "paper_id": paper.id,
+                    "title": paper.title,
+                    "filename": paper.filename,
+                    "pages": paper.pages,
+                    "total_chunks": 0,
+                    "sections": {},
+                    "avg_chunk_length": 0,
+                    "created_at": paper.created_at.isoformat() if paper.created_at else None,
+                    "note": "Chunk statistics unavailable"
+                }
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        import traceback
+        print(f"[ERROR] Get paper stats failed: {e}")
+        print(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=f"Failed to get paper stats: {str(e)}")

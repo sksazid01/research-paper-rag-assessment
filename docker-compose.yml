@@ -6,25 +6,27 @@ services:
       dockerfile: Dockerfile
     container_name: rag_api
     restart: unless-stopped
-    env_file: .env
+    # Run container with host user's UID/GID to avoid permission issues
+    user: "${UID:-1000}:${GID:-1000}"
     environment:
-      # Inside Docker network, use service names instead of localhost
-      DATABASE_URL: postgresql+psycopg2://rag_user:rag_pass@postgres:5432/ragdb
-      QDRANT_HOST: qdrant
+      # Using host network, so we access services via localhost with host-mapped ports
+      DATABASE_URL: postgresql+psycopg2://rag_user:rag_pass@localhost:5433/ragdb
+      QDRANT_HOST: localhost
       QDRANT_PORT: 6333
       QDRANT_COLLECTION: research_papers
-      # Talk to Ollama running on the HOST machine
-      OLLAMA_BASE_URL: http://host.docker.internal:11434
+      # Talk to Ollama running on the HOST machine (via localhost since using host network)
+      OLLAMA_BASE_URL: http://localhost:11434
     depends_on:
-      - postgres
-      - qdrant
-    ports:
-      - "8000:8000"
+      postgres:
+        condition: service_healthy
+      qdrant:
+        condition: service_started
+    network_mode: "host"
     volumes:
       - .:/app
+      - ./temp:/app/temp
+      - hf_cache:/cache
     command: uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
   postgres:
     image: postgres:16
     container_name: rag_postgres
@@ -37,6 +39,11 @@ services:
       - "5433:5432"  # host:container (use 5433 on host to avoid conflicts)
     volumes:
       - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U rag_user -d ragdb"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   qdrant:
     image: qdrant/qdrant:latest
@@ -51,4 +58,5 @@ services:
 volumes:
   pgdata:
   qdrant_storage:
+  hf_cache:
 

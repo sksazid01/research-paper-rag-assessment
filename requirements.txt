@@ -7,10 +7,10 @@ PyPDF2==3.0.1
 pdfminer.six==20221105
 
 # --- Machine Learning / Embeddings ---
-sentence-transformers>=2.7.0       # upgraded for HuggingFace compatibility
-torch>=2.0.0
-transformers>=4.40.0               # ensure latest features
-huggingface-hub>=0.22.0            # needed for hf_hub_download API
+--index-url https://download.pytorch.org/whl/cpu
+--extra-index-url https://pypi.org/simple
+sentence-transformers==2.7.0       # uses torch under the hood; CPU-only via index above
+torch==2.3.1                       # CPU-only wheel from PyTorch CPU index
 
 # --- Vector Database (Qdrant) ---
 qdrant-client==1.7.3
@@ -19,19 +19,8 @@ qdrant-client==1.7.3
 SQLAlchemy==2.0.29
 psycopg2-binary==2.9.9
 
-# --- Environment Variables ---
-python-dotenv==1.0.1
-
-# --- Data Handling ---
-pandas==2.2.2
-numpy==1.26.4
-
-# --- Testing ---
-pytest==8.2.0
+# --- HTTP client ---
 requests==2.31.0
-
-# --- Optional ---
-httpx==0.27.0  # For async API calls if needed
 
 # --- File Upload Support ---
 python-multipart>=0.0.6

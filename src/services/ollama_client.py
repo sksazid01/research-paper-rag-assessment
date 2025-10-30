@@ -25,7 +25,7 @@ import requests
 OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
 
 
-def _http_post(path: str, payload: Dict, timeout: int = 30) -> Optional[Dict]:
+def _http_post(path: str, payload: Dict, timeout: int = 120) -> Optional[Dict]:
     url = OLLAMA_BASE_URL.rstrip("/") + path
     try:
         r = requests.post(url, json=payload, timeout=timeout)
@@ -35,7 +35,10 @@ def _http_post(path: str, payload: Dict, timeout: int = 30) -> Optional[Dict]:
             return r.json()
         except ValueError:
             return {"raw": r.text}
-    except Exception:
+    except Exception as e:
+        # Log error for debugging but don't print in production
+        import sys
+        print(f"[WARNING] Ollama HTTP request failed: {e}", file=sys.stderr)
         return None
 
 
@@ -59,15 +62,25 @@ def generate_text(prompt: str, model: str = "llama3", max_tokens: int = 512, tem
     Tries HTTP first (daemon), then falls back to CLI. Returns a dict with the
     response (or an error field).
     """
-    # Try HTTP (common endpoints)
-    payload = {"model": model, "prompt": prompt, "max_tokens": max_tokens, "temperature": temperature}
-    # try /api/completions
-    resp = _http_post("/api/completions", payload)
+    # Try HTTP with /api/generate endpoint (which returns streaming NDJSON by default)
+    # We'll request non-streaming mode by setting "stream": false
+    payload = {
+        "model": model,
+        "prompt": prompt,
+        "options": {
+            "num_predict": max_tokens,
+            "temperature": temperature
+        },
+        "stream": False  # Disable streaming to get a single response
+    }
+    
+    resp = _http_post("/api/generate", payload)
     if resp is not None:
         return {"source": "http", "response": resp}
 
-    # try /api/generate (older/newer variations)
-    resp = _http_post("/api/generate", payload)
+    # Try /api/completions (less common)
+    payload = {"model": model, "prompt": prompt, "max_tokens": max_tokens, "temperature": temperature}
+    resp = _http_post("/api/completions", payload)
     if resp is not None:
         return {"source": "http", "response": resp}
 
