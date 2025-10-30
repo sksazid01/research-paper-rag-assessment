@@ -42,6 +42,19 @@ async def upload_papers(
         # Log how many files received for debugging
         print(f"[DEBUG] Received {len(files)} file(s): {[f.filename for f in files]}")
 
+        # Validate file types: PDF only
+        invalid = []
+        for f in files:
+            fname = (f.filename or "").lower()
+            ctype = (f.content_type or "").lower()
+            if not (fname.endswith(".pdf") or ctype == "application/pdf"):
+                invalid.append(f.filename)
+        if invalid:
+            raise HTTPException(
+                status_code=422,
+                detail=f"Only PDF files are accepted. Invalid files: {invalid}. Please upload .pdf files only."
+            )
+
         # Ensure temp directory exists (recreate if deleted)
         os.makedirs(UPLOAD_DIR, exist_ok=True)
 
