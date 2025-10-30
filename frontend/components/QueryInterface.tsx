@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import axios from 'axios'
-import { Search, Loader2, BookOpen, MapPin, TrendingUp } from 'lucide-react'
+import { Search, Loader2, BookOpen, MapPin, TrendingUp, FileText, X } from 'lucide-react'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
@@ -21,12 +21,48 @@ interface QueryResponse {
   paper_ids_used?: number[]
 }
 
+interface Paper {
+  id: number
+  title: string
+  filename: string
+  authors?: string
+  year?: string
+}
+
 export function QueryInterface() {
   const [question, setQuestion] = useState('')
   const [topK, setTopK] = useState(5)
   const [loading, setLoading] = useState(false)
   const [response, setResponse] = useState<QueryResponse | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [papers, setPapers] = useState<Paper[]>([])
+  const [selectedPaperIds, setSelectedPaperIds] = useState<number[]>([])
+  const [loadingPapers, setLoadingPapers] = useState(false)
+
+  // Fetch available papers on component mount
+  useEffect(() => {
+    const fetchPapers = async () => {
+      setLoadingPapers(true)
+      try {
+        const result = await axios.get(`${API_URL}/api/papers`)
+        setPapers(result.data.papers || [])
+      } catch (err) {
+        console.error('Failed to fetch papers:', err)
+      } finally {
+        setLoadingPapers(false)
+      }
+    }
+
+    fetchPapers()
+  }, [])
+
+  const togglePaperSelection = (paperId: number) => {
+    setSelectedPaperIds(prev => 
+      prev.includes(paperId) 
+        ? prev.filter(id => id !== paperId)
+        : [...prev, paperId]
+    )
+  }
 
   const handleQuery = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -41,11 +77,18 @@ export function QueryInterface() {
     setResponse(null)
 
     try {
-      const result = await axios.post(`${API_URL}/api/query`, {
+      const queryPayload: any = {
         question: question.trim(),
         top_k: topK,
         model: "llama3"
-      }, {
+      }
+
+      // Add paper_ids filter if papers are selected
+      if (selectedPaperIds.length > 0) {
+        queryPayload.paper_ids = selectedPaperIds
+      }
+
+      const result = await axios.post(`${API_URL}/api/query`, queryPayload, {
         headers: {
           'Content-Type': 'application/json'
         }
@@ -108,6 +151,63 @@ export function QueryInterface() {
               className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all resize-none"
             />
           </div>
+
+          {/* Paper Selection */}
+          {papers.length > 0 && (
+            <div className="bg-gradient-to-br from-purple-50 to-pink-50 p-5 rounded-xl border-2 border-purple-200">
+              <div className="flex items-center justify-between mb-3">
+                <label className="block text-sm font-semibold text-gray-700 flex items-center space-x-2">
+                  <FileText className="w-4 h-4 text-purple-600" />
+                  <span>Filter by Papers (Optional)</span>
+                </label>
+                <span className="text-xs text-gray-600">
+                  {selectedPaperIds.length > 0 
+                    ? `${selectedPaperIds.length} selected`
+                    : 'Search all papers'}
+                </span>
+              </div>
+              
+              <div className="max-h-40 overflow-y-auto space-y-2 custom-scrollbar">
+                {papers.map((paper) => (
+                  <label
+                    key={paper.id}
+                    className={`
+                      flex items-start space-x-3 p-3 rounded-lg border-2 cursor-pointer transition-all
+                      ${selectedPaperIds.includes(paper.id)
+                        ? 'bg-purple-100 border-purple-400 shadow-md'
+                        : 'bg-white border-purple-200 hover:border-purple-300 hover:shadow-sm'
+                      }
+                    `}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedPaperIds.includes(paper.id)}
+                      onChange={() => togglePaperSelection(paper.id)}
+                      className="mt-1 w-4 h-4 text-purple-600 rounded focus:ring-2 focus:ring-purple-500"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium text-sm text-gray-900 truncate">
+                        {paper.filename}
+                      </div>
+                      <div className="text-xs text-gray-600 truncate mt-0.5">
+                        {paper.title || 'Untitled'}
+                      </div>
+                    </div>
+                  </label>
+                ))}
+              </div>
+              
+              {selectedPaperIds.length > 0 && (
+                <button
+                  onClick={() => setSelectedPaperIds([])}
+                  className="mt-3 text-xs text-purple-600 hover:text-purple-800 font-medium flex items-center space-x-1"
+                >
+                  <X className="w-3 h-3" />
+                  <span>Clear selection</span>
+                </button>
+              )}
+            </div>
+          )}
 
           <div className="bg-gradient-to-br from-gray-50 to-slate-50 p-5 rounded-xl border-2 border-gray-200">
             <div className="flex items-center justify-between mb-4">
