@@ -1,4 +1,5 @@
 import asyncio
+import json
 import os
 from typing import List, Optional
 
@@ -49,6 +50,7 @@ async def upload_papers(
             # Chunking
             chunks = chunk_sentences(sentences)
             texts = [c["text"] for c in chunks]
+            # print(chunks)
 
             # Embeddings (batched)
             vectors = embedding_service.get_embeddings(texts)
@@ -70,11 +72,23 @@ async def upload_papers(
 
             qdrant_client.upsert_vectors(vectors, payloads)
 
+            # Save chunks to temp as JSON for inspection / offline use
+            chunks_out = {
+                "paper_id": paper_id,
+                "filename": file.filename,
+                "metadata": meta,
+                "chunks": chunks,
+            }
+            chunks_file = os.path.join(UPLOAD_DIR, f"{paper_id}_chunks.json")
+            with open(chunks_file, "w", encoding="utf-8") as jf:
+                json.dump(chunks_out, jf, ensure_ascii=False, indent=2)
+
             return {
                 "filename": file.filename,
                 "paper_id": paper_id,
                 "metadata": meta,
                 "chunks": len(chunks),
+                "chunks_file": chunks_file,
             }
 
         # Limit concurrency to avoid CPU thrash; process up to 3 at a time

@@ -6,13 +6,14 @@ from pdfminer.high_level import extract_text
 
 
 SECTION_PATTERNS = [
-    ("Abstract", re.compile(r"^\s*(abstract|summary)\s*$", re.I)),
-    ("Introduction", re.compile(r"^\s*(introduction|background)\s*$", re.I)),
-    ("Methods", re.compile(r"^\s*(methods?|methodology|materials? and methods?)\s*$", re.I)),
-    ("Results", re.compile(r"^\s*(results?|findings)\s*$", re.I)),
-    ("Discussion", re.compile(r"^\s*(discussion)\s*$", re.I)),
-    ("Conclusion", re.compile(r"^\s*(conclusions?|concluding\s+remarks)\s*$", re.I)),
-    ("References", re.compile(r"^\s*(references|bibliography)\s*$", re.I)),
+    # Flexible patterns: numbered sections, punctuation, case-insensitive
+    ("Abstract", re.compile(r"^\s*(\d+[\.\)]\s*)?(abstract|summary)[\s:]*", re.I)),
+    ("Introduction", re.compile(r"^\s*(\d+[\.\)]\s*)?(introduction|background)[\s:]*", re.I)),
+    ("Methods", re.compile(r"^\s*(\d+[\.\)]\s*)?(research\s+)?method(ology|s)?|materials?\s*(and|&)\s*methods?[\s:]*", re.I)),
+    ("Results", re.compile(r"^\s*(\d+[\.\)]\s*)?(results?|findings|experiments?|evaluation)[\s:]*", re.I)),
+    ("Discussion", re.compile(r"^\s*(\d+[\.\)]\s*)?(discussion|analysis)[\s:]*", re.I)),
+    ("Conclusion", re.compile(r"^\s*(\d+[\.\)]\s*)?(conclusions?|concluding\s+remarks|future\s+(work|directions?))[\s:]*", re.I)),
+    ("References", re.compile(r"^\s*(\d+[\.\)]\s*)?(references|bibliography|citations?|works?\s+cited)[\s:]*", re.I)),
 ]
 
 
@@ -89,15 +90,22 @@ def extract_sections_and_sentences(file_path: str):
         for ln in lines:
             if not ln:
                 continue
-            # Heading detection
+            
+            # Check if line matches any section pattern first (more lenient)
             matched = False
             for section_name, pattern in SECTION_PATTERNS:
-                if pattern.match(ln):
-                    current_section = section_name
-                    matched = True
-                    break
+                # Match if pattern found and line is reasonably short (not body text)
+                if pattern.search(ln) and len(ln) < 100:
+                    # Extra check: line should start with the pattern or be mostly the heading
+                    match_obj = pattern.search(ln)
+                    if match_obj and (match_obj.start() < 10 or ln.isupper()):
+                        current_section = section_name
+                        matched = True
+                        break
+            
             if matched:
                 continue
+            
             # Split into sentences (simple heuristic)
             for sent in re.split(r"(?<=[.!?])\s+(?=[A-Z(\[])", ln):
                 st = sent.strip()
