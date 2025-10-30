@@ -26,18 +26,81 @@ body {
 
 /* Custom scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 10px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: #f3f4f6;
+  border-radius: 8px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #888;
-  border-radius: 4px;
+  background: linear-gradient(to bottom, #3b82f6, #6366f1);
+  border-radius: 8px;
+  border: 2px solid #f3f4f6;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #555;
+  background: linear-gradient(to bottom, #2563eb, #4f46e5);
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Custom Range Slider */
+.slider-thumb::-webkit-slider-thumb {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #3b82f6, #6366f1);
+  cursor: pointer;
+  border: 3px solid white;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4), 0 0 0 1px rgba(59, 130, 246, 0.2);
+  transition: all 0.2s ease;
+}
+
+.slider-thumb::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.6), 0 0 0 2px rgba(59, 130, 246, 0.3);
+}
+
+.slider-thumb::-webkit-slider-thumb:active {
+  transform: scale(1.1);
+  box-shadow: 0 2px 6px rgba(59, 130, 246, 0.8), 0 0 0 3px rgba(59, 130, 246, 0.4);
+}
+
+.slider-thumb::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #3b82f6, #6366f1);
+  cursor: pointer;
+  border: 3px solid white;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4), 0 0 0 1px rgba(59, 130, 246, 0.2);
+  transition: all 0.2s ease;
+}
+
+.slider-thumb::-moz-range-thumb:hover {
+  transform: scale(1.2);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.6), 0 0 0 2px rgba(59, 130, 246, 0.3);
+}
+
+.slider-thumb::-moz-range-thumb:active {
+  transform: scale(1.1);
+  box-shadow: 0 2px 6px rgba(59, 130, 246, 0.8), 0 0 0 3px rgba(59, 130, 246, 0.4);
 }

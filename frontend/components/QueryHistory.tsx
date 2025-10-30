@@ -63,12 +63,17 @@ export function QueryHistory() {
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       {/* Query History */}
       <div className="lg:col-span-2 space-y-4">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-2xl font-bold text-gray-900">Query History</h2>
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center space-x-3">
+            <div className="bg-gradient-to-br from-blue-100 to-indigo-100 p-2 rounded-lg">
+              <Clock className="w-6 h-6 text-blue-600" />
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900">Query History</h2>
+          </div>
           <select
             value={limit}
             onChange={(e) => setLimit(parseInt(e.target.value))}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+            className="px-4 py-2 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-semibold text-sm bg-white shadow-sm"
           >
             <option value={10}>Last 10</option>
             <option value={20}>Last 20</option>
@@ -78,32 +83,43 @@ export function QueryHistory() {
         </div>
 
         {history.length === 0 ? (
-          <div className="bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg p-12 text-center">
-            <Clock className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No query history yet</h3>
-            <p className="text-gray-600">Start querying papers to see your history here</p>
+          <div className="bg-gradient-to-br from-gray-50 to-blue-50 border-2 border-dashed border-gray-300 rounded-2xl p-16 text-center">
+            <div className="bg-white rounded-full w-24 h-24 flex items-center justify-center mx-auto mb-6 shadow-lg">
+              <Clock className="w-12 h-12 text-blue-600" />
+            </div>
+            <h3 className="text-2xl font-bold text-gray-900 mb-3">No query history yet</h3>
+            <p className="text-gray-600 text-lg">Start querying papers to see your history here</p>
           </div>
         ) : (
           <div className="space-y-3">
-            {history.map((item) => (
-              <div key={item.id} className="bg-white rounded-lg shadow-md p-6">
+            {history.map((item, index) => (
+              <div key={item.id} className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 hover:shadow-xl transition-all">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <p className="font-medium text-gray-900 mb-2">{item.question}</p>
-                    <div className="flex items-center space-x-4 text-sm text-gray-600">
-                      <span className="flex items-center space-x-1">
-                        <Clock className="w-4 h-4" />
-                        <span>{formatDate(item.created_at)}</span>
+                    <div className="flex items-start space-x-3 mb-3">
+                      <span className="bg-blue-600 text-white px-2.5 py-1 rounded-lg text-xs font-bold">
+                        #{history.length - index}
                       </span>
-                      <span>Response: {item.response_time_ms}ms</span>
-                      <span>Confidence: {(parseFloat(item.confidence) * 100).toFixed(0)}%</span>
+                      <p className="font-semibold text-gray-900 text-lg flex-1">{item.question}</p>
+                    </div>
+                    <div className="flex items-center flex-wrap gap-3 text-sm">
+                      <span className="flex items-center space-x-1.5 bg-gray-100 px-3 py-1.5 rounded-lg">
+                        <Clock className="w-4 h-4 text-blue-600" />
+                        <span className="font-medium text-gray-700">{formatDate(item.created_at)}</span>
+                      </span>
+                      <span className="bg-green-100 text-green-700 px-3 py-1.5 rounded-lg font-semibold">
+                        {item.response_time_ms}ms
+                      </span>
+                      <span className="bg-blue-100 text-blue-700 px-3 py-1.5 rounded-lg font-semibold">
+                        {(parseFloat(item.confidence) * 100).toFixed(0)}% Confidence
+                      </span>
                     </div>
                     {item.papers_used && item.papers_used.length > 0 && (
-                      <div className="mt-2 flex flex-wrap gap-2">
+                      <div className="mt-3 flex flex-wrap gap-2">
                         {item.papers_used.map((paper, idx) => (
                           <span
                             key={idx}
-                            className="px-2 py-1 bg-primary-50 text-primary-700 rounded text-xs"
+                            className="px-3 py-1 bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 text-purple-700 rounded-full text-xs font-semibold"
                           >
                             {paper}
                           </span>
@@ -120,29 +136,38 @@ export function QueryHistory() {
 
       {/* Popular Topics */}
       <div className="lg:col-span-1">
-        <div className="bg-white rounded-lg shadow-md p-6 sticky top-6">
-          <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center space-x-2">
-            <TrendingUp className="w-5 h-5" />
+        <div className="bg-gradient-to-br from-white to-orange-50/30 rounded-2xl shadow-xl border border-orange-100 p-6 sticky top-6">
+          <h3 className="text-lg font-bold text-gray-900 mb-6 flex items-center space-x-3">
+            <div className="bg-gradient-to-br from-orange-100 to-red-100 p-2 rounded-lg">
+              <TrendingUp className="w-5 h-5 text-orange-600" />
+            </div>
             <span>Popular Topics</span>
           </h3>
 
           {popularTopics.length === 0 ? (
-            <p className="text-gray-500 text-center py-4">No topics yet</p>
+            <div className="text-center py-8">
+              <div className="bg-gray-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                <TrendingUp className="w-8 h-8 text-gray-400" />
+              </div>
+              <p className="text-gray-500 font-medium">No topics yet</p>
+            </div>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-4">
               {popularTopics.map((topic, index) => (
-                <div key={index} className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-gray-700">{topic.keyword}</span>
-                  <div className="flex items-center space-x-2">
-                    <div className="w-20 bg-gray-200 rounded-full h-2">
-                      <div
-                        className="bg-primary-600 h-2 rounded-full"
-                        style={{
-                          width: `${Math.min((topic.count / Math.max(...popularTopics.map(t => t.count))) * 100, 100)}%`,
-                        }}
-                      ></div>
-                    </div>
-                    <span className="text-sm text-gray-600 w-8 text-right">{topic.count}</span>
+                <div key={index} className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-bold text-gray-900">{topic.keyword}</span>
+                    <span className="bg-orange-100 text-orange-700 px-2.5 py-1 rounded-full text-xs font-bold">
+                      {topic.count}
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2.5">
+                    <div
+                      className="bg-gradient-to-r from-orange-500 to-red-500 h-2.5 rounded-full transition-all"
+                      style={{
+                        width: `${Math.min((topic.count / Math.max(...popularTopics.map(t => t.count))) * 100, 100)}%`,
+                      }}
+                    ></div>
                   </div>
                 </div>
               ))}

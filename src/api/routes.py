@@ -139,12 +139,7 @@ async def upload_papers(
 
 @router.post("/query")
 async def query_papers(
-    request: Request,
-    question: Optional[str] = None,
-    top_k: int = 5,
-    paper_ids: Optional[List[int]] = None,
-    model: str = "llama3",
-    rating: Optional[int] = None,
+    request: Request
 ):
     """
     Intelligent Query System - Answer questions using RAG pipeline.
@@ -173,17 +168,21 @@ async def query_papers(
     }
     """
     try:
-        # Accept both JSON body and query params
+        # Parse JSON body
         try:
             body = await request.json()
-            if isinstance(body, dict):
-                question = body.get("question", question)
-                top_k = int(body.get("top_k", top_k))
-                paper_ids = body.get("paper_ids", paper_ids)
-                model = body.get("model", model)
-                rating = body.get("rating", rating)
-        except Exception:
-            pass
+            if not isinstance(body, dict):
+                raise HTTPException(status_code=422, detail="Request body must be a JSON object")
+            
+            question = body.get("question")
+            top_k = int(body.get("top_k", 5))
+            paper_ids = body.get("paper_ids")
+            model = body.get("model", "llama3")
+            rating = body.get("rating")
+        except ValueError as ve:
+            raise HTTPException(status_code=422, detail=f"Invalid parameter format: {str(ve)}")
+        except Exception as e:
+            raise HTTPException(status_code=422, detail=f"Invalid request body: {str(e)}")
 
         if not question or not str(question).strip():
             raise HTTPException(status_code=422, detail="Field 'question' is required and cannot be empty")
