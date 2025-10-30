@@ -142,7 +142,7 @@ async def query_papers(
     request: Request
 ):
     """
-    Intelligent Query System - Answer questions using RAG pipeline.
+    Intelligent Query System - Answer questions using RAG pipeline with streaming response.
     
     Request body:
     {
@@ -152,21 +152,12 @@ async def query_papers(
       "model": "llama3"     // optional: LLM model to use
     }
     
-    Response format matches Task_Instructions.md specification:
-    {
-      "answer": "The transformer paper uses...",
-      "citations": [
-        {
-          "paper_title": "Attention is All You Need",
-          "section": "Methodology",
-          "page": "3-4",
-          "relevance_score": 0.89
-        }
-      ],
-      "sources_used": ["paper3_nlp_transformers.pdf"],
-      "confidence": 0.85
-    }
+    Returns Server-Sent Events (SSE) stream with word-by-word response.
     """
+    from fastapi.responses import StreamingResponse
+    import json
+    import asyncio
+    
     try:
         # Parse JSON body
         try:
@@ -178,7 +169,6 @@ async def query_papers(
             top_k = int(body.get("top_k", 5))
             paper_ids = body.get("paper_ids")
             model = body.get("model", "llama3")
-            rating = body.get("rating")
         except ValueError as ve:
             raise HTTPException(status_code=422, detail=f"Invalid parameter format: {str(ve)}")
         except Exception as e:
@@ -191,39 +181,92 @@ async def query_papers(
         if top_k < 1 or top_k > 50:
             raise HTTPException(status_code=422, detail="Field 'top_k' must be between 1 and 50")
         
-        # Import rag_pipeline here to avoid circular imports
+        # Import required modules
         from ..services import rag_pipeline
-        
-        # Generate answer using RAG pipeline
-        start = time.perf_counter()
-        result = rag_pipeline.answer(
-            query=question,
-            model=model,
-            top_k=top_k,
-            paper_ids=paper_ids
-        )
-        elapsed_ms = int((time.perf_counter() - start) * 1000)
+        from ..services.ollama_client import generate_text_stream
 
-        # Persist query history (best-effort; do not fail the request if this fails)
-        try:
-            used_ids = result.get("paper_ids_used") or []
-            save_query_history(
-                question=question,
-                paper_ids=used_ids,
-                response_time_ms=elapsed_ms,
-                confidence=result.get("confidence"),
-                rating=rating,
-            )
-        except Exception as hist_err:
-            print(f"[WARNING] Failed to save query history: {hist_err}")
-        
-        return result
+        async def generate_stream():
+            try:
+                # Send an initial SSE comment to open the stream promptly
+                # and help some proxies/browsers start rendering immediately
+                yield ":\n\n"
+                await asyncio.sleep(0)
+
+                # Retrieve contexts
+                contexts = rag_pipeline.retrieve_context(question, top_k=top_k, paper_ids=paper_ids)
+
+                if not contexts:
+                    yield f"data: {json.dumps({'type': 'token', 'content': 'No relevant information found in the database.'})}\n\n"
+                    yield f"data: {json.dumps({'type': 'metadata', 'citations': [], 'sources_used': [], 'confidence': 0.0})}\n\n"
+                    yield f"data: {json.dumps({'type': 'done'})}\n\n"
+                    return
+
+                # Assemble prompt
+                prompt = rag_pipeline.assemble_prompt(question, contexts)
+
+                # Stream the LLM response
+                full_answer = ""
+                for chunk in generate_text_stream(prompt, model=model, max_tokens=512, temperature=0.0):
+                    full_answer += chunk
+                    yield f"data: {json.dumps({'type': 'token', 'content': chunk})}\n\n"
+                    # Give control back to the loop to flush
+                    await asyncio.sleep(0)
+
+                # Extract citations and calculate confidence
+                citations = rag_pipeline.extract_citations_from_answer(full_answer, contexts)
+                sources_used = list(set(c.get("paper_filename") for c in contexts if c.get("paper_filename")))
+                paper_ids_used = list({c.get("paper_id") for c in contexts if c.get("paper_id") is not None})
+                confidence = rag_pipeline.calculate_confidence(contexts, full_answer)
+
+                # Send metadata
+                metadata = {
+                    'type': 'metadata',
+                    'citations': citations,
+                    'sources_used': sources_used,
+                    'confidence': confidence,
+                    'paper_ids_used': paper_ids_used
+                }
+                yield f"data: {json.dumps(metadata)}\n\n"
+                await asyncio.sleep(0)
+
+                # Save query history
+                try:
+                    save_query_history(
+                        question=question,
+                        paper_ids=paper_ids_used,
+                        response_time_ms=0,
+                        confidence=confidence,
+                        rating=None,
+                    )
+                except Exception as hist_err:
+                    print(f"[WARNING] Failed to save query history: {hist_err}")
+
+                # Send done signal
+                yield f"data: {json.dumps({'type': 'done'})}\n\n"
+                await asyncio.sleep(0)
+
+            except Exception as e:
+                import traceback
+                print(f"[ERROR] Streaming query failed: {e}")
+                print(traceback.format_exc())
+                yield f"data: {json.dumps({'type': 'error', 'message': str(e)})}\n\n"
+
+        return StreamingResponse(
+            generate_stream(),
+            media_type="text/event-stream",
+            headers={
+                "Cache-Control": "no-cache, no-transform",
+                "Connection": "keep-alive",
+                "Content-Type": "text/event-stream; charset=utf-8",
+                "X-Accel-Buffering": "no"
+            }
+        )
     
     except HTTPException:
         raise
     except Exception as e:
         import traceback
-        print(f"[ERROR] Query failed: {e}")
+        print(f"[ERROR] Query setup failed: {e}")
         print(traceback.format_exc())
         raise HTTPException(status_code=500, detail=f"Query processing failed: {str(e)}")
 

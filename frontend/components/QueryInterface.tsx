@@ -38,6 +38,7 @@ export function QueryInterface() {
   const [papers, setPapers] = useState<Paper[]>([])
   const [selectedPaperIds, setSelectedPaperIds] = useState<number[]>([])
   const [loadingPapers, setLoadingPapers] = useState(false)
+  const [streamingAnswer, setStreamingAnswer] = useState('')
 
   // Fetch available papers on component mount
   useEffect(() => {
@@ -64,6 +65,97 @@ export function QueryInterface() {
     )
   }
 
+  const handleQueryStreaming = async (queryPayload: any) => {
+    setStreamingAnswer('')
+    
+    try {
+      const response = await fetch(`${API_URL}/api/query`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'text/event-stream',
+        },
+        cache: 'no-store',
+        body: JSON.stringify(queryPayload),
+      })
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      const reader = response.body?.getReader()
+      const decoder = new TextDecoder()
+
+      if (!reader) {
+        throw new Error('Response body is not readable')
+      }
+
+  let fullAnswer = ''
+      let metadata: any = null
+      let buffer = '' // Buffer for incomplete lines
+  let sawFirstToken = false
+
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+
+        // Decode chunk and add to buffer
+        buffer += decoder.decode(value, { stream: true })
+        
+        // Split by double newline (SSE event separator)
+        const events = buffer.split('\n\n')
+        
+        // Keep the last incomplete event in buffer
+        buffer = events.pop() || ''
+
+        // Process complete events
+        for (const event of events) {
+          const lines = event.split('\n')
+          
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              try {
+                const jsonStr = line.slice(6).trim()
+                if (!jsonStr) continue
+                
+                const data = JSON.parse(jsonStr)
+                
+                if (data.type === 'token') {
+                  fullAnswer += data.content
+                  setStreamingAnswer(fullAnswer)
+                  if (!sawFirstToken) {
+                    // Drop the loading state as soon as we start receiving data
+                    setLoading(false)
+                    sawFirstToken = true
+                  }
+                } else if (data.type === 'metadata') {
+                  metadata = data
+                } else if (data.type === 'done') {
+                  // Finalize response
+                  if (metadata) {
+                    setResponse({
+                      answer: fullAnswer,
+                      citations: metadata.citations || [],
+                      sources_used: metadata.sources_used || [],
+                      confidence: metadata.confidence || 0,
+                      paper_ids_used: metadata.paper_ids_used || []
+                    })
+                  }
+                } else if (data.type === 'error') {
+                  throw new Error(data.message)
+                }
+              } catch (parseErr) {
+                console.warn('Failed to parse SSE data:', line, parseErr)
+              }
+            }
+          }
+        }
+      }
+    } catch (err: any) {
+      throw err
+    }
+  }
+
   const handleQuery = async (e: React.FormEvent) => {
     e.preventDefault()
     
@@ -75,6 +167,7 @@ export function QueryInterface() {
     setLoading(true)
     setError(null)
     setResponse(null)
+    setStreamingAnswer('')
 
     try {
       const queryPayload: any = {
@@ -88,13 +181,8 @@ export function QueryInterface() {
         queryPayload.paper_ids = selectedPaperIds
       }
 
-      const result = await axios.post(`${API_URL}/api/query`, queryPayload, {
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      })
-
-      setResponse(result.data)
+      // Always use streaming
+      await handleQueryStreaming(queryPayload)
     } catch (err: any) {
       let errorMessage = 'Failed to process query. Please try again.'
       
@@ -291,7 +379,7 @@ export function QueryInterface() {
       </div>
 
       {/* Response */}
-      {response && (
+      {(response || streamingAnswer) && (
         <div className="space-y-6 animate-in fade-in duration-500">
           {/* Answer Card */}
           <div className="bg-gradient-to-br from-white to-blue-50/30 rounded-2xl shadow-xl border border-blue-100 p-8">
@@ -299,18 +387,30 @@ export function QueryInterface() {
               <h3 className="text-2xl font-bold text-gray-900 flex items-center space-x-2">
                 <div className="w-1 h-8 bg-gradient-to-b from-blue-600 to-indigo-600 rounded-full"></div>
                 <span>Answer</span>
+                {streamingAnswer && !response && (
+                  <span className="ml-2 px-2 py-1 text-xs bg-green-100 text-green-700 rounded-full animate-pulse">
+                    Streaming...
+                  </span>
+                )}
               </h3>
-              <div className={`px-4 py-2 rounded-full text-sm font-bold shadow-md ${getConfidenceColor(response.confidence)}`}>
-                {(response.confidence * 100).toFixed(0)}% Confidence
-              </div>
+              {response && (
+                <div className={`px-4 py-2 rounded-full text-sm font-bold shadow-md ${getConfidenceColor(response.confidence)}`}>
+                  {(response.confidence * 100).toFixed(0)}% Confidence
+                </div>
+              )}
             </div>
             <div className="prose prose-base max-w-none">
-              <p className="text-gray-800 leading-relaxed whitespace-pre-wrap text-lg">{response.answer}</p>
+              <p className="text-gray-800 leading-relaxed whitespace-pre-wrap text-lg">
+                {streamingAnswer || response?.answer}
+                {streamingAnswer && !response && (
+                  <span className="inline-block w-2 h-5 bg-blue-600 ml-1 animate-pulse"></span>
+                )}
+              </p>
             </div>
           </div>
 
           {/* Citations */}
-          {response.citations && response.citations.length > 0 && (
+          {response && response.citations && response.citations.length > 0 && (
             <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8">
               <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center space-x-3">
                 <div className="bg-gradient-to-br from-amber-100 to-orange-100 p-2 rounded-lg">
@@ -354,7 +454,7 @@ export function QueryInterface() {
           )}
 
           {/* Sources Used */}
-          {response.sources_used && response.sources_used.length > 0 && (
+          {response && response.sources_used && response.sources_used.length > 0 && (
             <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
               <h4 className="font-semibold text-gray-900 mb-4 text-lg">Sources Used</h4>
               <div className="flex flex-wrap gap-2">
