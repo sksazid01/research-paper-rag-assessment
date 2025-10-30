@@ -121,3 +121,66 @@ async def upload_papers(
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/query")
+async def query_papers(
+    question: str,
+    top_k: int = 5,
+    paper_ids: Optional[List[int]] = None,
+    model: str = "llama3"
+):
+    """
+    Intelligent Query System - Answer questions using RAG pipeline.
+    
+    Request body:
+    {
+      "question": "What methodology was used in the transformer paper?",
+      "top_k": 5,
+      "paper_ids": [1, 3]  // optional: limit to specific papers
+      "model": "llama3"     // optional: LLM model to use
+    }
+    
+    Response format matches Task_Instructions.md specification:
+    {
+      "answer": "The transformer paper uses...",
+      "citations": [
+        {
+          "paper_title": "Attention is All You Need",
+          "section": "Methodology",
+          "page": "3-4",
+          "relevance_score": 0.89
+        }
+      ],
+      "sources_used": ["paper3_nlp_transformers.pdf"],
+      "confidence": 0.85
+    }
+    """
+    try:
+        if not question or not question.strip():
+            raise HTTPException(status_code=422, detail="Field 'question' is required and cannot be empty")
+        
+        # Validate top_k
+        if top_k < 1 or top_k > 50:
+            raise HTTPException(status_code=422, detail="Field 'top_k' must be between 1 and 50")
+        
+        # Import rag_pipeline here to avoid circular imports
+        from ..services import rag_pipeline
+        
+        # Generate answer using RAG pipeline
+        result = rag_pipeline.answer(
+            query=question,
+            model=model,
+            top_k=top_k,
+            paper_ids=paper_ids
+        )
+        
+        return result
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        import traceback
+        print(f"[ERROR] Query failed: {e}")
+        print(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=f"Query processing failed: {str(e)}")
