@@ -341,7 +341,7 @@ curl http://localhost:8000/api/papers/1/stats
 }
 ```
 
-For complete API documentation, see [API_DOCUMENTATION.md](API_DOCUMENTATION.md)
+The interactive API documentation at /docs reflects all available endpoints.
 
 ---
 
@@ -411,36 +411,29 @@ research-paper-rag-assessment/
 │   │   └── routes.py                # API endpoint definitions
 │   ├── models/
 │   │   ├── __init__.py
-│   │   └── db.py                    # SQLAlchemy models
-│   ├── services/
-│   │   ├── __init__.py
-│   │   ├── pdf_processor.py         # PDF extraction logic
-│   │   ├── embedding_service.py     # Sentence transformers
-│   │   ├── qdrant_client.py         # Qdrant vector DB client
-│   │   ├── rag_pipeline.py          # RAG query pipeline
-│   │   ├── ollama_client.py         # Ollama LLM client
-│   │   └── chunking.py              # Text chunking strategies
-│   └── __pycache__/
+│   │   └── db.py                    # SQLAlchemy models (papers, queries)
+│   └── services/
+│       ├── __init__.py
+│       ├── pdf_processor.py         # PDF extraction logic
+│       ├── embedding_service.py     # Sentence transformers
+│       ├── qdrant_client.py         # Qdrant vector DB client
+│       ├── rag_pipeline.py          # RAG query pipeline
+│       ├── ollama_client.py         # Ollama LLM client
+│       └── chunking.py              # Text chunking strategies
 ├── sample_papers/                   # Test PDF files
-│   ├── paper_1.pdf
-│   ├── paper_2.pdf
-│   └── ...
 ├── temp/                            # Uploaded files & chunks (auto-created)
-├── tests/                           # Test scripts
-│   ├── test_query_api.sh
-│   ├── test_query_examples.py
-│   ├── test_paper_management.sh
-│   └── test_paper_management.py
 ├── docker-compose.yml               # Docker services configuration
 ├── Dockerfile                       # API service container
 ├── requirements.txt                 # Python dependencies
-├── .env                             # Environment variables
+├── .env.example                     # Environment variables example
+├── .env                             # Environment variables (local)
 ├── setup.sh                         # One-command setup script
+├── verify.sh                        # Quick environment verification
 ├── README.md                        # This file
-├── APPROACH.md                      # Design decisions explained
-├── API_DOCUMENTATION.md             # Complete API reference
-├── QUERY_TEST_RESULTS.md            # Test results and analysis
-└── TROUBLESHOOTING.md               # Common issues and fixes
+└── tests/                           # Test scripts
+  ├── test_query_api.sh
+  ├── test_query_examples.py
+  └── test_paper_management.{py,sh}
 ```
 
 ---
@@ -449,10 +442,10 @@ research-paper-rag-assessment/
 
 ### Environment Variables
 
-The system uses `.env` file for configuration (auto-managed by setup script):
+The system uses `.env` (or docker-compose envs) for configuration:
 
 ```bash
-# Database
+# Database (docker-compose defaults)
 DATABASE_URL=postgresql+psycopg2://rag_user:rag_pass@localhost:5433/ragdb
 
 # Qdrant Vector DB
@@ -499,7 +492,7 @@ ollama serve
 ollama pull llama3
 ```
 
-See [TROUBLESHOOTING.md](TROUBLESHOOTING.md) for detailed fixes.
+If the above steps don't help, check container logs via docker-compose logs.
 
 #### 2. Permission Denied on temp/ Directory
 **Symptom:** Cannot delete files in temp/
@@ -626,12 +619,6 @@ docker-compose down -v
 
 ---
 
-## 🤝 Contributing
-
-See [APPROACH.md](APPROACH.md) for design decisions and architecture details.
-
----
-
 ## 📄 License
 
 [Your License Here]
@@ -644,14 +631,6 @@ See [APPROACH.md](APPROACH.md) for design decisions and architecture details.
 - **Ollama** - Local LLM inference
 - **FastAPI** - Web framework
 - **sentence-transformers** - Embedding models
-
----
-
-## 📞 Support
-
-- **Issues:** Open a GitHub issue
-- **Questions:** See [TROUBLESHOOTING.md](TROUBLESHOOTING.md)
-- **Documentation:** [API_DOCUMENTATION.md](API_DOCUMENTATION.md)
 
 ---
 

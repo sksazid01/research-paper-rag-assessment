@@ -160,8 +160,9 @@ def answer(query: str, model: str = "llama3", top_k: int = 5, paper_ids: Optiona
 	# Extract citations from answer
 	citations = extract_citations_from_answer(answer_text, contexts)
 	
-	# Get unique sources used
+	# Get unique sources used (filenames) and paper ids
 	sources_used = list(set(c.get("paper_filename") for c in contexts if c.get("paper_filename")))
+	paper_ids_used = list({c.get("paper_id") for c in contexts if c.get("paper_id") is not None})
 	
 	# Calculate confidence
 	confidence = calculate_confidence(contexts, answer_text)
@@ -170,6 +171,7 @@ def answer(query: str, model: str = "llama3", top_k: int = 5, paper_ids: Optiona
 		"answer": answer_text.strip(),
 		"citations": citations,
 		"sources_used": sources_used,
-		"confidence": confidence
+		"confidence": confidence,
+		"paper_ids_used": paper_ids_used
 	}
 

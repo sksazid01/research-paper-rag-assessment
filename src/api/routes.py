@@ -3,11 +3,12 @@ import json
 import os
 from typing import List, Optional, Union
 
-from fastapi import APIRouter, UploadFile, HTTPException, File
+from fastapi import APIRouter, UploadFile, HTTPException, File, Request
+import time
 
 from ..services import pdf_processor, embedding_service, qdrant_client
 from ..services.chunking import chunk_sentences
-from ..models.db import save_paper_meta
+from ..models.db import save_paper_meta, save_query_history, list_recent_queries, get_popular_topics
 
 router = APIRouter(prefix="/api")
 
@@ -125,10 +126,12 @@ async def upload_papers(
 
 @router.post("/query")
 async def query_papers(
-    question: str,
+    request: Request,
+    question: Optional[str] = None,
     top_k: int = 5,
     paper_ids: Optional[List[int]] = None,
-    model: str = "llama3"
+    model: str = "llama3",
+    rating: Optional[int] = None,
 ):
     """
     Intelligent Query System - Answer questions using RAG pipeline.
@@ -157,7 +160,19 @@ async def query_papers(
     }
     """
     try:
-        if not question or not question.strip():
+        # Accept both JSON body and query params
+        try:
+            body = await request.json()
+            if isinstance(body, dict):
+                question = body.get("question", question)
+                top_k = int(body.get("top_k", top_k))
+                paper_ids = body.get("paper_ids", paper_ids)
+                model = body.get("model", model)
+                rating = body.get("rating", rating)
+        except Exception:
+            pass
+
+        if not question or not str(question).strip():
             raise HTTPException(status_code=422, detail="Field 'question' is required and cannot be empty")
         
         # Validate top_k
@@ -168,12 +183,27 @@ async def query_papers(
         from ..services import rag_pipeline
         
         # Generate answer using RAG pipeline
+        start = time.perf_counter()
         result = rag_pipeline.answer(
             query=question,
             model=model,
             top_k=top_k,
             paper_ids=paper_ids
         )
+        elapsed_ms = int((time.perf_counter() - start) * 1000)
+
+        # Persist query history (best-effort; do not fail the request if this fails)
+        try:
+            used_ids = result.get("paper_ids_used") or []
+            save_query_history(
+                question=question,
+                paper_ids=used_ids,
+                response_time_ms=elapsed_ms,
+                confidence=result.get("confidence"),
+                rating=rating,
+            )
+        except Exception as hist_err:
+            print(f"[WARNING] Failed to save query history: {hist_err}")
         
         return result
     
@@ -184,6 +214,34 @@ async def query_papers(
         print(f"[ERROR] Query failed: {e}")
         print(traceback.format_exc())
         raise HTTPException(status_code=500, detail=f"Query processing failed: {str(e)}")
+
+
+# ============================================================================
+# Query History & Analytics Endpoints
+# ============================================================================
+
+@router.get("/queries/history")
+async def get_query_history(limit: int = 20):
+    """Return recent queries with referenced papers and metadata."""
+    try:
+        limit = max(1, min(limit, 100))
+        items = list_recent_queries(limit=limit)
+        return {"queries": items, "total": len(items)}
+    except Exception as e:
+        print(f"[ERROR] Get query history failed: {e}")
+        raise HTTPException(status_code=500, detail="Failed to retrieve query history")
+
+
+@router.get("/analytics/popular")
+async def get_popular_analytics(limit: int = 10):
+    """Return most queried topics from recent queries (naive keyword frequency)."""
+    try:
+        limit = max(1, min(limit, 50))
+        topics = get_popular_topics(limit=limit)
+        return {"popular_topics": topics}
+    except Exception as e:
+        print(f"[ERROR] Get analytics popular failed: {e}")
+        raise HTTPException(status_code=500, detail="Failed to compute analytics")
 
 
 # ============================================================================

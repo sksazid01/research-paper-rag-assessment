@@ -44,6 +44,8 @@ Thumbs.db
 *.log
 *.tmp
 *.bak
+temp/
+temp/**
 
 # -----------------------------------------------------
 # Environment & configuration
