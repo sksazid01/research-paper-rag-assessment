@@ -1,7 +1,7 @@
 import asyncio
 import json
 import os
-from typing import List, Optional
+from typing import List, Optional, Union
 
 from fastapi import APIRouter, UploadFile, HTTPException, File
 
@@ -16,15 +16,33 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 @router.post("/papers/upload")
 async def upload_papers(
-    files: Optional[List[UploadFile]] = File(None),
-    file: Optional[UploadFile] = File(None),
+    files: List[UploadFile] = File(default=[]),
+    file: List[UploadFile] = File(default=[]),
 ):
     try:
-        # Support either field name: `files` (preferred, array) or `file` (single)
-        if files is None and file is not None:
-            files = [file]
-        if not files:
-            raise HTTPException(status_code=422, detail="Field 'files' (array) or 'file' (single) is required")
+        # Support either field name: `files` (preferred, array) or `file` (single or multiple with same key)
+        upload_files = []
+        
+        if files:
+            upload_files.extend(files)
+        
+        if file:
+            # Handle both single file and multiple files sent with same "file" key
+            if isinstance(file, list):
+                upload_files.extend(file)
+            else:
+                upload_files.append(file)
+        
+        if not upload_files:
+            raise HTTPException(status_code=422, detail="Field 'files' (array) or 'file' (single/multiple) is required")
+        
+        files = upload_files  # Normalize to files variable for processing
+        
+        # Log how many files received for debugging
+        print(f"[DEBUG] Received {len(files)} file(s): {[f.filename for f in files]}")
+
+        # Ensure temp directory exists (recreate if deleted)
+        os.makedirs(UPLOAD_DIR, exist_ok=True)
 
         # Ensure Qdrant collection is ready based on model dimension(384)
         qdrant_client.ensure_collection(embedding_service.get_model_dim())
@@ -79,7 +97,7 @@ async def upload_papers(
                 "metadata": meta,
                 "chunks": chunks,
             }
-            chunks_file = os.path.join(UPLOAD_DIR, f"{paper_id}_chunks.json")
+            chunks_file = os.path.join(UPLOAD_DIR, f"{os.path.splitext(file.filename)[0]}_chunks.json")
             with open(chunks_file, "w", encoding="utf-8") as jf:
                 json.dump(chunks_out, jf, ensure_ascii=False, indent=2)
 
