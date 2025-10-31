@@ -1,4 +1,5 @@
 import os
+import uuid
 from typing import List, Dict, Optional
 
 from qdrant_client import QdrantClient
@@ -48,8 +49,23 @@ def ensure_collection(vector_size: int, distance: str = "COSINE"):
 
 
 def upsert_vectors(vectors: List[List[float]], payloads: List[Dict], ids: Optional[List[int]] = None):
+    """
+    Upsert vectors to Qdrant collection.
+    
+    Args:
+        vectors: List of embedding vectors
+        payloads: List of payload dictionaries with metadata
+        ids: Optional list of IDs. If None, generates unique UUIDs.
+    
+    Note: We use UUIDs to avoid race conditions when uploading multiple papers
+    concurrently. IDs are not needed for retrieval since we search by vector
+    similarity and filter by paper_id in the payload.
+    """
     if ids is None:
-        ids = list(range(len(vectors)))
+        # Generate unique UUIDs to avoid ID collisions during concurrent uploads
+        # Use uuid4().int to get integer IDs that Qdrant can handle
+        ids = [uuid.uuid4().int % (2**63 - 1) for _ in range(len(vectors))]
+    
     client.upsert(
         collection_name=COLLECTION_NAME,
         points=models.Batch(vectors=vectors, payloads=payloads, ids=ids),
