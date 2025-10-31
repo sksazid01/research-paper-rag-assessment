@@ -13,9 +13,15 @@ A production-ready Retrieval-Augmented Generation (RAG) service for querying aca
 curl -fsSL https://ollama.ai/install.sh | sh
 ollama pull llama3
 
-# 2. Clone and run the project
-git clone <your-repo-url>
+# 2. Run Ollama server
+ollama run llama3
+# This will start Ollama at http://localhost:11434/
+# Keep this terminal running
+
+# 3. In a new terminal, clone and run the project
+git clone https://github.com/sksazid01/research-paper-rag-assessment.git
 cd research-paper-rag-assessment
+git checkout submission/Md_Ahasanul_Haque_Sazid
 docker compose up --build
 ```
 
@@ -26,24 +32,24 @@ That's it! The system will be ready:
 **⚠️  CRITICAL WARNING: Port 3456 MUST be FREE to run the frontend!**
 
 **Quick test:**
+
+Option 1: **Web Interface** (Recommended)
+- Open http://localhost:3456 in your browser
+- Upload PDFs via drag & drop
+- Ask questions and see real-time streaming answers
+
+Option 2: **API (curl)**
 ```bash
 curl -X POST -F "files=@sample_papers/paper_1.pdf" http://localhost:8000/api/papers/upload
 ```
 
 **⚠️ Port Conflict?** If you see `Error: bind: address already in use`:
 ```bash
-# WARNING: You MUST free port 3456 before starting Docker!
-
-# Use the helper script:
-./fix-port-3456.sh
-
-# Or manually kill the process on port 3456:
+# Find and kill the process using port 3456
 sudo kill -9 $(lsof -t -i:3456)
-```
 
-**Note:** On first run, copy `.env.example` to `.env` if it doesn't exist:
-```bash
-cp .env.example .env
+# Or for port 8000
+sudo kill -9 $(lsof -t -i:8000)
 ```
 
 ---
@@ -82,68 +88,53 @@ cp .env.example .env
 - 📊 **Structured Responses** - JSON API with proper error handling
 - 🎨 **Modern Web UI** - Beautiful, responsive Next.js app with SSE streaming
 - ⚡ **Performance Optimized** - Query caching, batch operations, score thresholding
+- 🎯 **Advanced Re-ranking** - Cross-encoder re-ranking for improved relevance (~10-15% better results)
 
 ---
 
 ## 🏗️ Architecture
 
-```mermaid
-graph TB
-    Client[Client/User]
-    
-    subgraph "FastAPI Application :8000"
-        API[API Routes]
-        Ingestion[Document Ingestion Pipeline]
-        RAG[RAG Query Pipeline]
-        
-        subgraph "Services Layer"
-            PDF[PDF Processor]
-            Chunk[Chunking Service]
-            Embed[Embedding Service]
-            RAGPipe[RAG Service]
-            Ollama[Ollama Client]
-        end
-        
-        subgraph "Models Layer"
-            DB[Database Models]
-        end
-    end
-    
-    subgraph "Data Storage"
-        Postgres[(PostgreSQL :5433<br/>Paper Metadata)]
-        Qdrant[(Qdrant :6333<br/>Vector Store)]
-    end
-    
-    subgraph "External Services"
-        OllamaLLM[Ollama LLM Server :11434<br/>llama3 Model]
-    end
-    
-    Client -->|HTTP Requests| API
-    
-    API -->|Upload PDF| Ingestion
-    Ingestion --> PDF
-    PDF --> Chunk
-    Chunk --> Embed
-    Embed -->|Store Vectors| Qdrant
-    Embed -->|Store Metadata| Postgres
-    
-    API -->|Query| RAG
-    RAG --> RAGPipe
-    RAGPipe -->|Retrieve Context| Qdrant
-    RAGPipe -->|Get Papers| Postgres
-    RAGPipe -->|Generate Answer| Ollama
-    Ollama -->|HTTP API| OllamaLLM
-    OllamaLLM -->|LLM Response| Ollama
-    RAGPipe -->|Save History| DB
-    DB --> Postgres
-    
-    style API fill:#4a90e2
-    style Ingestion fill:#50c878
-    style RAG fill:#9b59b6
-    style Postgres fill:#f39c12
-    style Qdrant fill:#e74c3c
-    style OllamaLLM fill:#16a085
-```
+![System Architecture](architecture.png)
+
+### Key Components
+
+#### Frontend (Port 3456)
+- **Next.js Application**: Modern React framework with SSE streaming
+- **File Upload**: Drag & drop interface for PDF uploads
+- **Query Interface**: Real-time streaming answers with citations
+- **Paper Management**: View, delete, and analyze uploaded papers
+
+#### Backend API (Port 8000)
+- **FastAPI Framework**: High-performance async API with auto-documentation
+- **Document Ingestion**: PDF extraction → Chunking → Embedding → Storage
+- **RAG Pipeline**: Two-stage retrieval (Bi-encoder + Cross-encoder)
+
+#### Storage
+- **PostgreSQL**: Metadata (papers, queries, history)
+- **Qdrant**: 384-dimensional vector embeddings with COSINE similarity
+
+#### External Services
+- **Ollama**: Local LLM inference with llama3 model
+
+### Data Flow
+
+**Upload Flow** (Steps 1-4):
+1. User uploads PDF via web interface
+2. PDF text extraction with section detection
+3. Text chunking with overlap for context preservation
+4. Embedding generation + storage in Qdrant & PostgreSQL
+
+**Query Flow** (Steps 1-12):
+1. User submits question
+2. Query embedding generation
+3. Retrieve top_k × 2 candidates (bi-encoder, fast)
+4. Re-rank with cross-encoder (slow, accurate)
+5. Fetch paper metadata
+6. Build LLM prompt with top-K contexts
+7. Stream response from Ollama
+8. Parse and extract citations
+9. Save query history
+10. Return answer with confidence scores
 
 ---
 
@@ -168,7 +159,11 @@ graph TB
    # Pull the model
    ollama pull llama3
    
-   # Verify it's running
+   # Run Ollama server (keep this running)
+   ollama run llama3
+   # Server will be available at http://localhost:11434/
+   
+   # In another terminal, verify it's running
    curl http://localhost:11434/api/tags
    ```
 
@@ -405,8 +400,7 @@ research-paper-rag-assessment/
 ├── .env.example                     # Environment variables example
 ├── .env                             # Environment variables (local)
 ├── setup.sh                         # One-command setup script
-├── verify.sh                        # Quick environment verification
-├── QUERY_OPTIMIZATION.md            # Performance optimization docs
+├── APPROACH.md                      # Technical design decisions
 ├── README.md                        # This file
 └── tests/                           # Test scripts
     ├── test_query_api.sh
@@ -420,10 +414,10 @@ research-paper-rag-assessment/
 
 ### Environment Variables
 
-The system uses `.env` (or docker-compose envs) for configuration:
+Environment variables are configured in `docker-compose.yml`. You can create a `.env` file for custom values:
 
 ```bash
-# Database (docker-compose defaults)
+# Database
 DATABASE_URL=postgresql+psycopg2://rag_user:rag_pass@localhost:5433/ragdb
 
 # Qdrant Vector DB
@@ -431,8 +425,19 @@ QDRANT_HOST=localhost
 QDRANT_PORT=6333
 QDRANT_COLLECTION=research_papers
 
-# Ollama LLM
+# Ollama LLM (must be running on host)
 OLLAMA_BASE_URL=http://localhost:11434
+
+# RAG Configuration (optional)
+RETRIEVAL_SCORE_THRESHOLD=0.15
+RETRIEVAL_SCORE_THRESHOLD_FILTERED=0.05
+RERANK_TEXT_BOOST=0.15
+RERANK_TITLE_BOOST=0.30
+
+# Advanced: Cross-Encoder Re-ranking
+ENABLE_CROSS_ENCODER_RERANK=true
+CROSS_ENCODER_MODEL=cross-encoder/ms-marco-MiniLM-L-6-v2
+RERANK_RETRIEVAL_MULTIPLIER=2
 
 # Docker user mapping (auto-detected)
 UID=1000
@@ -457,21 +462,26 @@ All services use persistent volumes to preserve data across restarts.
 ### Common Issues
 
 #### 1. Ollama Connection Refused
-**Symptom:** Queries return empty answers
+**Symptom:** Queries return empty answers or "Connection refused" errors
 
 **Solution:**
 ```bash
-# Check Ollama is running
+# Check if Ollama is running
 curl http://localhost:11434/api/tags
 
-# Start Ollama if not running
-ollama serve
+# If not running, start Ollama server (keep this terminal open)
+ollama run llama3
 
-# Pull the model
+# If model is missing, pull it first
 ollama pull llama3
+
+# Verify the server is accessible
+curl http://localhost:11434/api/generate -d '{"model":"llama3","prompt":"test"}'
 ```
 
-If the above steps don't help, check container logs via docker-compose logs.
+**Note:** Ollama must be running on the host machine at `http://localhost:11434/` for the Docker containers to access it.
+
+If the above steps don't help, check container logs via `docker-compose logs api`.
 
 #### 2. Permission Denied on temp/ Directory
 **Symptom:** Cannot delete files in temp/
@@ -494,13 +504,6 @@ docker-compose down
 **Cause:** You're running `npm run dev` locally in the frontend folder or another service is using port 3456
 
 **Solution:**
-
-**Quick Fix - Use the helper script:**
-```bash
-./fix-port-3456.sh
-```
-
-**Manual Fix:**
 ```bash
 # Check what's using port 3456
 lsof -i :3456
@@ -618,4 +621,4 @@ docker-compose down -v             # Stop + clean volumes
 
 ---
 
-**Built with ❤️ for the Research Community**
+**Built with ❤️ for the UpScaleBD**

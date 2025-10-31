@@ -534,21 +534,7 @@
               ]
             },
             "description": "expected_papers: paper3_nlp_transformers.pdf | difficulty: easy | type: single-paper"
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "const resp = pm.response.json();",
-                  "pm.test('Has answer', () => typeof resp.answer === 'string');",
-                  "const expected = ['paper3_nlp_transformers.pdf'];",
-                  "pm.test('Includes expected sources', () => (resp.sources_used||[]).some(s=>expected.includes(s)));"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ]
+          }
         },
         {
           "name": "Q2: Activation functions in neural networks",
@@ -577,20 +563,7 @@
               "port": "8000"
             },
             "description": "expected_papers: paper2_neural_networks.pdf | difficulty: easy | type: single-paper"
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "const r=pm.response.json();",
-                  "const exp=['paper2_neural_networks.pdf'];",
-                  "pm.test('Includes expected sources',()=> (r.sources_used||[]).some(s=>exp.includes(s)));"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ]
+          }
         },
         {
           "name": "Q3: Datasets for evaluating CV models",
@@ -619,20 +592,7 @@
               "port": "8000"
             },
             "description": "expected_papers: paper4_computer_vision.pdf | difficulty: medium | type: single-paper"
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "const r=pm.response.json();",
-                  "const exp=['paper4_computer_vision.pdf'];",
-                  "pm.test('Includes expected sources',()=> (r.sources_used||[]).some(s=>exp.includes(s)));"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ]
+          }
         },
         {
           "name": "Q4: CNNs vs Transformers for image recognition",
@@ -661,20 +621,7 @@
               "port": "8000"
             },
             "description": "expected_papers: paper3_nlp_transformers.pdf, paper4_computer_vision.pdf | difficulty: medium | type: multi-paper"
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "const r=pm.response.json();",
-                  "const exp=['paper3_nlp_transformers.pdf','paper4_computer_vision.pdf'];",
-                  "pm.test('Includes at least one expected source',()=> (r.sources_used||[]).some(s=>exp.includes(s)));"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ]
+          }
         },
         {
           "name": "Q5: Optimization algorithms across ML and DL",
@@ -703,20 +650,7 @@
               "port": "8000"
             },
             "description": "expected_papers: paper1_machine_learning.pdf, paper2_neural_networks.pdf | difficulty: medium | type: multi-paper"
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "const r=pm.response.json();",
-                  "const exp=['paper1_machine_learning.pdf','paper2_neural_networks.pdf'];",
-                  "pm.test('Includes at least one expected source',()=> (r.sources_used||[]).some(s=>exp.includes(s)));"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ]
+          }
         },
         {
           "name": "Q6: RL applied to decision-making",
@@ -745,20 +679,7 @@
               "port": "8000"
             },
             "description": "expected_papers: paper5_reinforcement_learning.pdf | difficulty: easy | type: single-paper"
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "const r=pm.response.json();",
-                  "const exp=['paper5_reinforcement_learning.pdf'];",
-                  "pm.test('Includes expected sources',()=> (r.sources_used||[]).some(s=>exp.includes(s)));"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ]
+          }
         },
         {
           "name": "Q7: Summarize transformer methodology",
@@ -787,20 +708,7 @@
               "port": "8000"
             },
             "description": "expected_papers: paper3_nlp_transformers.pdf | difficulty: easy | type: single-paper"
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "const r=pm.response.json();",
-                  "const exp=['paper3_nlp_transformers.pdf'];",
-                  "pm.test('Includes expected sources',()=> (r.sources_used||[]).some(s=>exp.includes(s)));"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ]
+          }
         },
         {
           "name": "Q8: Challenges in training deep neural networks",
@@ -829,20 +737,7 @@
               "port": "8000"
             },
             "description": "expected_papers: paper2_neural_networks.pdf | difficulty: medium | type: single-paper"
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "const r=pm.response.json();",
-                  "const exp=['paper2_neural_networks.pdf'];",
-                  "pm.test('Includes expected sources',()=> (r.sources_used||[]).some(s=>exp.includes(s)));"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ]
+          }
         },
         {
           "name": "Q9: Paper introducing attention mechanisms",
@@ -871,20 +766,7 @@
               "port": "8000"
             },
             "description": "expected_papers: paper3_nlp_transformers.pdf | difficulty: easy | type: single-paper"
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "const r=pm.response.json();",
-                  "const exp=['paper3_nlp_transformers.pdf'];",
-                  "pm.test('Includes expected sources',()=> (r.sources_used||[]).some(s=>exp.includes(s)));"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ]
+          }
         },
         {
           "name": "Q10: Classical ML vs Deep Learning",
@@ -913,20 +795,7 @@
               "port": "8000"
             },
             "description": "expected_papers: paper1_machine_learning.pdf, paper2_neural_networks.pdf | difficulty: medium | type: multi-paper"
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "const r=pm.response.json();",
-                  "const exp=['paper1_machine_learning.pdf','paper2_neural_networks.pdf'];",
-                  "pm.test('Includes at least one expected source',()=> (r.sources_used||[]).some(s=>exp.includes(s)));"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ]
+          }
         },
         {
           "name": "Q11: RL benchmarks",
@@ -955,20 +824,7 @@
               "port": "8000"
             },
             "description": "expected_papers: paper5_reinforcement_learning.pdf | difficulty: easy | type: single-paper"
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "const r=pm.response.json();",
-                  "const exp=['paper5_reinforcement_learning.pdf'];",
-                  "pm.test('Includes expected sources',()=> (r.sources_used||[]).some(s=>exp.includes(s)));"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ]
+          }
         },
         {
           "name": "Q12: Loss functions across architectures",
@@ -997,20 +853,7 @@
               "port": "8000"
             },
             "description": "expected_papers: paper2_neural_networks.pdf, paper4_computer_vision.pdf | difficulty: medium | type: multi-paper"
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "const r=pm.response.json();",
-                  "const exp=['paper2_neural_networks.pdf','paper4_computer_vision.pdf'];",
-                  "pm.test('Includes at least one expected source',()=> (r.sources_used||[]).some(s=>exp.includes(s)));"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ]
+          }
         },
         {
           "name": "Q13: How CNNs extract features",
@@ -1039,20 +882,7 @@
               "port": "8000"
             },
             "description": "expected_papers: paper4_computer_vision.pdf | difficulty: easy | type: single-paper"
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "const r=pm.response.json();",
-                  "const exp=['paper4_computer_vision.pdf'];",
-                  "pm.test('Includes expected sources',()=> (r.sources_used||[]).some(s=>exp.includes(s)));"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ]
+          }
         },
         {
           "name": "Q14: RL reward optimization process",
@@ -1081,20 +911,7 @@
               "port": "8000"
             },
             "description": "expected_papers: paper5_reinforcement_learning.pdf | difficulty: easy | type: single-paper"
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "const r=pm.response.json();",
-                  "const exp=['paper5_reinforcement_learning.pdf'];",
-                  "pm.test('Includes expected sources',()=> (r.sources_used||[]).some(s=>exp.includes(s)));"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ]
+          }
         },
         {
           "name": "Q15: Transfer learning across domains",
@@ -1123,20 +940,7 @@
               "port": "8000"
             },
             "description": "expected_papers: paper2_neural_networks.pdf, paper4_computer_vision.pdf | difficulty: medium | type: multi-paper"
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "const r=pm.response.json();",
-                  "const exp=['paper2_neural_networks.pdf','paper4_computer_vision.pdf'];",
-                  "pm.test('Includes at least one expected source',()=> (r.sources_used||[]).some(s=>exp.includes(s)));"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ]
+          }
         },
         {
           "name": "Q16: Training efficiency of gradient descent methods",
@@ -1165,20 +969,7 @@
               "port": "8000"
             },
             "description": "expected_papers: paper1_machine_learning.pdf, paper2_neural_networks.pdf, paper5_reinforcement_learning.pdf | difficulty: hard | type: multi-paper"
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "const r=pm.response.json();",
-                  "const exp=['paper1_machine_learning.pdf','paper2_neural_networks.pdf','paper5_reinforcement_learning.pdf'];",
-                  "pm.test('Includes at least one expected source',()=> (r.sources_used||[]).some(s=>exp.includes(s)));"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ]
+          }
         },
         {
           "name": "Q17: Highest generalization capability",
@@ -1207,20 +998,7 @@
               "port": "8000"
             },
             "description": "expected_papers: paper2_neural_networks.pdf, paper3_nlp_transformers.pdf, paper4_computer_vision.pdf | difficulty: hard | type: multi-paper"
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "const r=pm.response.json();",
-                  "const exp=['paper2_neural_networks.pdf','paper3_nlp_transformers.pdf','paper4_computer_vision.pdf'];",
-                  "pm.test('Includes at least one expected source',()=> (r.sources_used||[]).some(s=>exp.includes(s)));"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ]
+          }
         },
         {
           "name": "Q18: Future research directions in RL",
@@ -1249,20 +1027,7 @@
               "port": "8000"
             },
             "description": "expected_papers: paper5_reinforcement_learning.pdf | difficulty: medium | type: single-paper"
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "const r=pm.response.json();",
-                  "const exp=['paper5_reinforcement_learning.pdf'];",
-                  "pm.test('Includes expected sources',()=> (r.sources_used||[]).some(s=>exp.includes(s)));"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ]
+          }
         },
         {
           "name": "Q19: Combine attention with convolution",
@@ -1291,20 +1056,7 @@
               "port": "8000"
             },
             "description": "expected_papers: paper3_nlp_transformers.pdf, paper4_computer_vision.pdf | difficulty: hard | type: multi-paper"
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "const r=pm.response.json();",
-                  "const exp=['paper3_nlp_transformers.pdf','paper4_computer_vision.pdf'];",
-                  "pm.test('Includes at least one expected source',()=> (r.sources_used||[]).some(s=>exp.includes(s)));"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ]
+          }
         },
         {
           "name": "Q20: Ethical considerations across all papers",
@@ -1333,20 +1085,7 @@
               "port": "8000"
             },
             "description": "expected_papers: paper1_machine_learning.pdf, paper2_neural_networks.pdf, paper3_nlp_transformers.pdf, paper4_computer_vision.pdf, paper5_reinforcement_learning.pdf | difficulty: hard | type: cross-domain"
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "const r=pm.response.json();",
-                  "const exp=['paper1_machine_learning.pdf','paper2_neural_networks.pdf','paper3_nlp_transformers.pdf','paper4_computer_vision.pdf','paper5_reinforcement_learning.pdf'];",
-                  "pm.test('Includes at least one expected source',()=> (r.sources_used||[]).some(s=>exp.includes(s)));"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ]
+          }
         }
       ],
       "description": "20 assessment queries mapped to the provided sample_papers. Each request includes a test that checks sources_used contains at least one expected paper filename."

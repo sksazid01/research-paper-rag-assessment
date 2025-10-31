@@ -332,8 +332,15 @@ async def query_papers_stream(
                 yield ":\n\n"
                 await asyncio.sleep(0)
 
-                # Retrieve contexts
-                contexts = rag_pipeline.retrieve_context(question, top_k=top_k, paper_ids=paper_ids)
+                # Retrieve contexts with re-ranking
+                import os
+                retrieval_multiplier = int(os.getenv("RERANK_RETRIEVAL_MULTIPLIER", "2"))
+                initial_top_k = top_k * retrieval_multiplier
+                contexts = rag_pipeline.retrieve_context(question, top_k=initial_top_k, paper_ids=paper_ids)
+                
+                # Re-rank for better relevance
+                if contexts:
+                    contexts = rag_pipeline.rerank_contexts(question, contexts, top_k=top_k)
 
                 if not contexts:
                     yield f"data: {json.dumps({'type': 'token', 'content': 'No relevant information found in the database.'})}\n\n"

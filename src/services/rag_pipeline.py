@@ -1,12 +1,26 @@
 from typing import List, Dict, Optional
 import re
+import os
 
 from qdrant_client.http import models
+from sentence_transformers import CrossEncoder
 
 from . import qdrant_client
 from .embedding_service import get_embeddings
 from .ollama_client import generate_text
 from ..models.db import SessionLocal, Paper
+
+# Initialize cross-encoder for re-ranking (lazy loaded)
+_cross_encoder = None
+
+def get_cross_encoder():
+	"""Lazy load cross-encoder model for re-ranking."""
+	global _cross_encoder
+	if _cross_encoder is None:
+		model_name = os.getenv("CROSS_ENCODER_MODEL", "cross-encoder/ms-marco-MiniLM-L-6-v2")
+		print(f"[INFO] Loading cross-encoder model: {model_name}")
+		_cross_encoder = CrossEncoder(model_name)
+	return _cross_encoder
 
 
 def get_paper_info(paper_id: int) -> Optional[Dict]:
@@ -49,7 +63,10 @@ def retrieve_context(query: str, top_k: int = 5, paper_ids: Optional[List[int]] 
 	# queries; make it easy to tune/debug here.
 	# SPECIAL CASE: If filtering to specific papers detected from the question,
 	# be even more lenient (0.05) to avoid missing the target paper due to weak title extraction
-	SCORE_THRESHOLD = 0.05 if paper_ids else 0.15
+	import os
+	SCORE_THRESHOLD_DEFAULT = float(os.getenv("RETRIEVAL_SCORE_THRESHOLD", "0.15"))
+	SCORE_THRESHOLD_FILTERED = float(os.getenv("RETRIEVAL_SCORE_THRESHOLD_FILTERED", "0.05"))
+	SCORE_THRESHOLD = SCORE_THRESHOLD_FILTERED if paper_ids else SCORE_THRESHOLD_DEFAULT
 	hits = qdrant_client.search(vec, limit=top_k, query_filter=query_filter, score_threshold=SCORE_THRESHOLD)
 
 	# Debug output to aid diagnosis when no hits are returned in runtime
@@ -101,19 +118,79 @@ def retrieve_context(query: str, top_k: int = 5, paper_ids: Optional[List[int]] 
 	# Lightweight keyword boost to favor matches that contain query terms like
 	# "attention" or "transformer" directly in the chunk text. This helps in
 	# title-specific questions without relying on exact payload filters.
+	import os
+	TEXT_BOOST = float(os.getenv("RERANK_TEXT_BOOST", "0.15"))
+	TITLE_BOOST = float(os.getenv("RERANK_TITLE_BOOST", "0.30"))
+	
 	ql = (query or "").lower()
 	boost_terms = [t for t in ["attention", "transformer", "transformers", "nlp", "neural network"] if t in ql]
 	if boost_terms:
 		def boosted(c):
 			text = (c.get("text") or "").lower()
 			title = (c.get("paper_title") or "").lower()
-			# Give bigger boost if terms appear in chunk text (0.15 per term)
-			# Also boost if terms appear in title (0.3 per term) for stronger signal
-			bonus = sum(0.15 for t in boost_terms if t in text)
-			bonus += sum(0.3 for t in boost_terms if t in title)
+			# Give bigger boost if terms appear in chunk text (configurable per term)
+			# Also boost if terms appear in title (configurable per term) for stronger signal
+			bonus = sum(TEXT_BOOST for t in boost_terms if t in text)
+			bonus += sum(TITLE_BOOST for t in boost_terms if t in title)
 			return c.get("score", 0.0) + bonus
 		contexts.sort(key=boosted, reverse=True)
 	return contexts
+
+
+def rerank_contexts(query: str, contexts: List[Dict], top_k: int = None) -> List[Dict]:
+	"""
+	Re-rank retrieved contexts using a cross-encoder model for better relevance.
+	
+	Cross-encoders jointly encode query and passage, providing more accurate
+	relevance scores than bi-encoders (used for initial retrieval).
+	
+	Args:
+		query: User question
+		contexts: List of context dicts from retrieve_context()
+		top_k: Return only top_k re-ranked results (defaults to all)
+	
+	Returns:
+		Contexts re-ordered by cross-encoder scores
+	"""
+	if not contexts:
+		return contexts
+	
+	# Check if re-ranking is enabled
+	enable_rerank = os.getenv("ENABLE_CROSS_ENCODER_RERANK", "true").lower() == "true"
+	if not enable_rerank:
+		return contexts
+	
+	try:
+		cross_encoder = get_cross_encoder()
+		
+		# Prepare (query, passage) pairs for cross-encoder
+		pairs = [(query, ctx.get("text", "")) for ctx in contexts]
+		
+		# Get relevance scores from cross-encoder
+		scores = cross_encoder.predict(pairs)
+		
+		# Combine scores with contexts and sort
+		scored_contexts = list(zip(scores, contexts))
+		scored_contexts.sort(key=lambda x: x[0], reverse=True)
+		
+		# Update original score with cross-encoder score for transparency
+		reranked = []
+		for ce_score, ctx in scored_contexts:
+			ctx_copy = ctx.copy()
+			ctx_copy["original_score"] = ctx.get("score", 0.0)
+			ctx_copy["score"] = float(ce_score)  # Replace with cross-encoder score
+			reranked.append(ctx_copy)
+		
+		# Return top_k if specified
+		if top_k:
+			reranked = reranked[:top_k]
+		
+		print(f"[INFO] Re-ranked {len(contexts)} contexts using cross-encoder")
+		return reranked
+		
+	except Exception as e:
+		print(f"[WARNING] Cross-encoder re-ranking failed: {e}. Falling back to original order.")
+		return contexts
 
 
 def _extract_quoted_titles(question: str) -> List[str]:
@@ -267,6 +344,24 @@ def calculate_confidence(contexts: List[Dict], answer_text: str) -> float:
 
 def answer(query: str, model: str = "llama3", top_k: int = 5, paper_ids: Optional[List[int]] = None) -> Dict:
 	"""Generate answer with citations following Task_Instructions.md spec."""
+	# Guard: detect non-research queries (greetings, small talk, off-topic)
+	q_lower = (query or "").lower().strip()
+	non_research_patterns = [
+		"hi", "hello", "hey", "how are you", "what's up", "whats up",
+		"good morning", "good afternoon", "good evening",
+		"thanks", "thank you", "bye", "goodbye",
+		"who are you", "what are you", "your name"
+	]
+	
+	# Check if query is too short or matches greeting patterns
+	if len(q_lower) < 5 or any(pattern == q_lower or q_lower.startswith(pattern + " ") for pattern in non_research_patterns):
+		return {
+			"answer": "Hello! I'm a research assistant specialized in answering questions about uploaded research papers. Please ask me a specific question about the papers in the database (e.g., 'What methodology was used?' or 'Explain the attention mechanism').",
+			"citations": [],
+			"sources_used": [],
+			"confidence": 0.0
+		}
+	
 	# If user didn't explicitly filter, try to detect target papers from the question
 	detected_ids: Optional[List[int]] = None
 	if not paper_ids:
@@ -282,7 +377,14 @@ def answer(query: str, model: str = "llama3", top_k: int = 5, paper_ids: Optiona
 		merged_ids = paper_ids or detected_ids
 
 	# Retrieve relevant contexts (optionally filtered to candidate paper ids)
-	contexts = retrieve_context(query, top_k=top_k, paper_ids=merged_ids)
+	# Fetch more candidates than needed for re-ranking
+	retrieval_multiplier = int(os.getenv("RERANK_RETRIEVAL_MULTIPLIER", "2"))
+	initial_top_k = top_k * retrieval_multiplier
+	contexts = retrieve_context(query, top_k=initial_top_k, paper_ids=merged_ids)
+	
+	# Re-rank contexts using cross-encoder for better relevance
+	if contexts:
+		contexts = rerank_contexts(query, contexts, top_k=top_k)
 	
 	if not contexts:
 		return {
