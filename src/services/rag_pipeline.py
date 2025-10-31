@@ -43,12 +43,34 @@ def retrieve_context(query: str, top_k: int = 5, paper_ids: Optional[List[int]] 
 			]
 		)
 	
-	hits = qdrant_client.search(vec, limit=top_k, query_filter=query_filter)
+	# Use score threshold to filter out irrelevant results (speeds up by reducing processing)
+	# Cosine similarity: 0.0-1.0, higher is better. 0.3 filters out very weak matches.
+	hits = qdrant_client.search(vec, limit=top_k, query_filter=query_filter, score_threshold=0.3)
+	
+	# Batch fetch paper metadata to avoid N+1 queries
+	unique_paper_ids = list(set(h.payload.get("paper_id") for h in hits if h.payload and h.payload.get("paper_id")))
+	paper_info_map = {}
+	
+	if unique_paper_ids:
+		with SessionLocal() as session:
+			papers = session.query(Paper).filter(Paper.id.in_(unique_paper_ids)).all()
+			paper_info_map = {
+				p.id: {
+					"id": p.id,
+					"title": p.title,
+					"authors": p.authors,
+					"year": p.year,
+					"filename": p.filename,
+					"pages": p.pages,
+				}
+				for p in papers
+			}
+	
 	contexts = []
 	for h in hits:
 		payload = h.payload or {}
 		paper_id = payload.get("paper_id")
-		paper_info = get_paper_info(paper_id) if paper_id else None
+		paper_info = paper_info_map.get(paper_id)
 		
 		contexts.append({
 			"text": payload.get("text") or "",

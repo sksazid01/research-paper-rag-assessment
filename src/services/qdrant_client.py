@@ -17,10 +17,34 @@ def ensure_collection(vector_size: int, distance: str = "COSINE"):
     try:
         client.get_collection(COLLECTION_NAME)
     except Exception:
+        # Use HNSW indexing for faster similarity search
         client.recreate_collection(
             collection_name=COLLECTION_NAME,
-            vectors_config=models.VectorParams(size=vector_size, distance=dist),
+            vectors_config=models.VectorParams(
+                size=vector_size, 
+                distance=dist,
+                # HNSW parameters for speed optimization
+                hnsw_config=models.HnswConfigDiff(
+                    m=16,  # Number of edges per node (higher = better accuracy, slower indexing)
+                    ef_construct=100,  # Size of dynamic candidate list (higher = better quality)
+                    full_scan_threshold=10000,  # Use HNSW index when collection has >10k vectors
+                )
+            ),
+            # Enable payload indexing for faster filtering by paper_id
+            optimizers_config=models.OptimizersConfigDiff(
+                indexing_threshold=10000,  # Create payload index after 10k points
+            ),
         )
+        
+        # Create index on paper_id field for faster filtering
+        try:
+            client.create_payload_index(
+                collection_name=COLLECTION_NAME,
+                field_name="paper_id",
+                field_schema=models.PayloadSchemaType.INTEGER,
+            )
+        except Exception as e:
+            print(f"[INFO] Payload index may already exist or creation skipped: {e}")
 
 
 def upsert_vectors(vectors: List[List[float]], payloads: List[Dict], ids: Optional[List[int]] = None):
@@ -32,10 +56,29 @@ def upsert_vectors(vectors: List[List[float]], payloads: List[Dict], ids: Option
     )
 
 
-def search(vector: List[float], limit: int = 5, query_filter: Optional[models.Filter] = None):
-    return client.search(
-        collection_name=COLLECTION_NAME,
-        query_vector=vector,
-        limit=limit,
-        query_filter=query_filter,
-    )
+def search(vector: List[float], limit: int = 5, query_filter: Optional[models.Filter] = None, score_threshold: float = None):
+    """
+    Search for similar vectors with optional filtering and score threshold.
+    
+    Args:
+        vector: Query vector
+        limit: Maximum number of results
+        query_filter: Optional filter for paper_ids or other fields
+        score_threshold: Minimum similarity score (0.0-1.0). Results below this are filtered out.
+    """
+    search_params = {
+        "collection_name": COLLECTION_NAME,
+        "query_vector": vector,
+        "limit": limit,
+        "query_filter": query_filter,
+    }
+    
+    # Add score threshold if provided (filters out low-quality matches)
+    if score_threshold is not None:
+        search_params["score_threshold"] = score_threshold
+    
+    # Use search params to configure HNSW search
+    search_params["with_payload"] = True
+    search_params["with_vectors"] = False  # Don't return vectors to save bandwidth
+    
+    return client.search(**search_params)
