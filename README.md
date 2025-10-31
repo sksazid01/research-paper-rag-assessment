@@ -379,7 +379,7 @@ research-paper-rag-assessment/
 │       ├── pdf_processor.py         # PDF extraction logic
 │       ├── embedding_service.py     # Sentence transformers with caching
 │       ├── qdrant_client.py         # Qdrant client with HNSW indexing
-│       ├── rag_pipeline.py          # RAG query pipeline with optimizations
+│       ├── rag_pipeline.py          # RAG query pipeline with cross-encoder
 │       ├── ollama_client.py         # Ollama LLM client with streaming
 │       └── chunking.py              # Text chunking strategies
 ├── frontend/                        # Next.js web interface
@@ -392,20 +392,27 @@ research-paper-rag-assessment/
 │   ├── package.json                 # Node.js dependencies
 │   ├── next.config.js               # Next.js configuration
 │   └── tailwind.config.js           # Tailwind CSS configuration
+├── tests/                           # Test suite
+│   ├── unit/                        # Unit tests (45 tests)
+│   │   ├── test_chunking.py         # Chunking logic tests
+│   │   ├── test_pdf_processor.py    # PDF extraction tests
+│   │   ├── test_rag_pipeline.py     # RAG pipeline tests
+│   │   ├── test_embedding_service.py # Embedding tests
+│   │   └── test_reranking.py        # Re-ranking tests
+│   ├── test_query_api.sh            # API endpoint tests
+│   ├── test_query_examples.py       # Query flow tests
+│   └── test_paper_management.py     # CRUD operation tests
 ├── sample_papers/                   # Test PDF files
 ├── temp/                            # Uploaded files & chunks (auto-created)
 ├── docker-compose.yml               # All services: frontend, API, DB, Qdrant
 ├── Dockerfile                       # Backend API container
 ├── requirements.txt                 # Python dependencies
-├── .env.example                     # Environment variables example
-├── .env                             # Environment variables (local)
+├── .env.example                     # Environment variables template
 ├── setup.sh                         # One-command setup script
 ├── APPROACH.md                      # Technical design decisions
-├── README.md                        # This file
-└── tests/                           # Test scripts
-    ├── test_query_api.sh
-    ├── test_query_examples.py
-    └── test_paper_management.{py,sh}
+├── postman_collection.json          # Postman API test collection
+├── test_queries.json                # Sample test queries
+└── README.md                        # This file
 ```
 
 ---
