@@ -410,30 +410,17 @@
       "description": "Test cases for error handling and validation across different endpoints."
     },
     {
-      "name": "Sample Test Queries",
+      "name": "Sample Test Queries (All 20 from test_queries.json)",
       "item": [
         {
-          "name": "Easy - What is machine learning?",
+          "name": "Easy 1 - What is machine learning?",
           "request": {
             "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Accept",
-                "value": "text/event-stream"
-              }
-            ],
+            "header": [{"key": "Content-Type", "value": "application/json"}],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"question\": \"What is machine learning?\",\n  \"top_k\": 5\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
+              "options": {"raw": {"language": "json"}}
             },
             "url": {
               "raw": "http://localhost:8000/api/query",
@@ -442,32 +429,103 @@
               "port": "8000",
               "path": ["api", "query"]
             },
-            "description": "Test query from test_queries.json - Easy factual question"
+            "description": "ID 1 | Easy | factual - Basic definition query"
           },
           "response": []
         },
         {
-          "name": "Medium - Compare supervised vs unsupervised learning",
+          "name": "Easy 2 - Main types of neural networks",
           "request": {
             "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Accept",
-                "value": "text/event-stream"
-              }
-            ],
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"question\": \"What are the main types of neural networks?\",\n  \"top_k\": 5\n}",
+              "options": {"raw": {"language": "json"}}
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/query",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["api", "query"]
+            },
+            "description": "ID 2 | Easy | factual - Simple enumeration query"
+          },
+          "response": []
+        },
+        {
+          "name": "Easy 3 - Define natural language processing",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"question\": \"Define natural language processing.\",\n  \"top_k\": 5\n}",
+              "options": {"raw": {"language": "json"}}
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/query",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["api", "query"]
+            },
+            "description": "ID 3 | Easy | definition - Definition query"
+          },
+          "response": []
+        },
+        {
+          "name": "Easy 4 - Purpose of backpropagation",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"question\": \"What is the purpose of backpropagation?\",\n  \"top_k\": 5\n}",
+              "options": {"raw": {"language": "json"}}
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/query",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["api", "query"]
+            },
+            "description": "ID 4 | Easy | factual - Single concept explanation"
+          },
+          "response": []
+        },
+        {
+          "name": "Easy 5 - Who introduced deep learning",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"question\": \"Who introduced the concept of deep learning?\",\n  \"top_k\": 5\n}",
+              "options": {"raw": {"language": "json"}}
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/query",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["api", "query"]
+            },
+            "description": "ID 18 | Easy | history - Historical query"
+          },
+          "response": []
+        },
+        {
+          "name": "Medium 1 - Compare supervised vs unsupervised learning",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"question\": \"Compare supervised and unsupervised learning approaches.\",\n  \"top_k\": 5\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
+              "options": {"raw": {"language": "json"}}
             },
             "url": {
               "raw": "http://localhost:8000/api/query",
@@ -476,66 +534,19 @@
               "port": "8000",
               "path": ["api", "query"]
             },
-            "description": "Test query from test_queries.json - Medium comparison question"
+            "description": "ID 5 | Medium | comparison - Multi-concept synthesis"
           },
           "response": []
         },
         {
-          "name": "Hard - BERT and transfer learning",
+          "name": "Medium 2 - Transformers improve upon RNNs",
           "request": {
             "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Accept",
-                "value": "text/event-stream"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"question\": \"How do pre-trained language models like BERT leverage transfer learning, and what makes them effective for downstream tasks?\",\n  \"top_k\": 5\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "http://localhost:8000/api/query",
-              "protocol": "http",
-              "host": ["localhost"],
-              "port": "8000",
-              "path": ["api", "query"]
-            },
-            "description": "Test query from test_queries.json - Hard multi-hop reasoning question"
-          },
-          "response": []
-        },
-        {
-          "name": "Medium - Transformer improvements over RNNs",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Accept",
-                "value": "text/event-stream"
-              }
-            ],
+            "header": [{"key": "Content-Type", "value": "application/json"}],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"question\": \"How do transformers improve upon traditional RNN architectures?\",\n  \"top_k\": 5\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
+              "options": {"raw": {"language": "json"}}
             },
             "url": {
               "raw": "http://localhost:8000/api/query",
@@ -544,32 +555,19 @@
               "port": "8000",
               "path": ["api", "query"]
             },
-            "description": "Test query from test_queries.json - Medium methodology comparison"
+            "description": "ID 6 | Medium | methodology - Methodological comparison"
           },
           "response": []
         },
         {
-          "name": "Hard - Model accuracy vs efficiency trade-offs",
+          "name": "Medium 3 - Computer vision in healthcare",
           "request": {
             "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Accept",
-                "value": "text/event-stream"
-              }
-            ],
+            "header": [{"key": "Content-Type", "value": "application/json"}],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"question\": \"What are the trade-offs between model accuracy and computational efficiency in deep learning?\",\n  \"top_k\": 5\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
+              "raw": "{\n  \"question\": \"What are the common applications of computer vision in healthcare?\",\n  \"top_k\": 5\n}",
+              "options": {"raw": {"language": "json"}}
             },
             "url": {
               "raw": "http://localhost:8000/api/query",
@@ -578,12 +576,264 @@
               "port": "8000",
               "path": ["api", "query"]
             },
-            "description": "Test query from test_queries.json - Hard comparative analysis question"
+            "description": "ID 7 | Medium | application - Domain-specific query"
+          },
+          "response": []
+        },
+        {
+          "name": "Medium 4 - Training process for deep neural networks",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"question\": \"Describe the training process for deep neural networks.\",\n  \"top_k\": 5\n}",
+              "options": {"raw": {"language": "json"}}
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/query",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["api", "query"]
+            },
+            "description": "ID 8 | Medium | process - Process explanation"
+          },
+          "response": []
+        },
+        {
+          "name": "Medium 5 - Vanishing gradient problem techniques",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"question\": \"What techniques can address the vanishing gradient problem?\",\n  \"top_k\": 5\n}",
+              "options": {"raw": {"language": "json"}}
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/query",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["api", "query"]
+            },
+            "description": "ID 9 | Medium | problem-solving - Problem-solution query"
+          },
+          "response": []
+        },
+        {
+          "name": "Medium 6 - Advantages of attention mechanisms",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"question\": \"What are the advantages of using attention mechanisms?\",\n  \"top_k\": 5\n}",
+              "options": {"raw": {"language": "json"}}
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/query",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["api", "query"]
+            },
+            "description": "ID 10 | Medium | advantages - Benefit enumeration"
+          },
+          "response": []
+        },
+        {
+          "name": "Medium 7 - Dropout prevent overfitting",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"question\": \"How does dropout prevent overfitting in neural networks?\",\n  \"top_k\": 5\n}",
+              "options": {"raw": {"language": "json"}}
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/query",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["api", "query"]
+            },
+            "description": "ID 17 | Medium | specific-technique - Mechanistic understanding"
+          },
+          "response": []
+        },
+        {
+          "name": "Medium 8 - Text preprocessing for NLP",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"question\": \"What preprocessing steps are typically required for text data before feeding it to NLP models?\",\n  \"top_k\": 5\n}",
+              "options": {"raw": {"language": "json"}}
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/query",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["api", "query"]
+            },
+            "description": "ID 20 | Medium | data-preprocessing - Data pipeline query"
+          },
+          "response": []
+        },
+        {
+          "name": "Hard 1 - BERT and transfer learning",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"question\": \"How do pre-trained language models like BERT leverage transfer learning, and what makes them effective for downstream tasks?\",\n  \"top_k\": 5\n}",
+              "options": {"raw": {"language": "json"}}
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/query",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["api", "query"]
+            },
+            "description": "ID 11 | Hard | multi-hop - Multi-hop reasoning"
+          },
+          "response": []
+        },
+        {
+          "name": "Hard 2 - Overfitting, regularization, generalization",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"question\": \"Explain the relationship between overfitting, regularization techniques, and model generalization.\",\n  \"top_k\": 5\n}",
+              "options": {"raw": {"language": "json"}}
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/query",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["api", "query"]
+            },
+            "description": "ID 12 | Hard | synthesis - Conceptual synthesis"
+          },
+          "response": []
+        },
+        {
+          "name": "Hard 3 - Model accuracy vs efficiency trade-offs",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"question\": \"What are the trade-offs between model accuracy and computational efficiency in deep learning?\",\n  \"top_k\": 5\n}",
+              "options": {"raw": {"language": "json"}}
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/query",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["api", "query"]
+            },
+            "description": "ID 13 | Hard | comparative-analysis - Trade-off analysis"
+          },
+          "response": []
+        },
+        {
+          "name": "Hard 4 - Evaluate reinforcement learning agent",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"question\": \"How should one evaluate the performance of a reinforcement learning agent in a complex environment?\",\n  \"top_k\": 5\n}",
+              "options": {"raw": {"language": "json"}}
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/query",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["api", "query"]
+            },
+            "description": "ID 14 | Hard | evaluation - Evaluation methodology"
+          },
+          "response": []
+        },
+        {
+          "name": "Hard 5 - CNNs vs Vision Transformers",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"question\": \"Compare the architectural differences between CNNs and Vision Transformers, and explain when each is more suitable.\",\n  \"top_k\": 5\n}",
+              "options": {"raw": {"language": "json"}}
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/query",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["api", "query"]
+            },
+            "description": "ID 15 | Hard | architectural - Deep architectural comparison"
+          },
+          "response": []
+        },
+        {
+          "name": "Hard 6 - Ethical concerns about bias in AI",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"question\": \"What are the main ethical concerns related to bias in AI models, and how can they be mitigated?\",\n  \"top_k\": 5\n}",
+              "options": {"raw": {"language": "json"}}
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/query",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["api", "query"]
+            },
+            "description": "ID 16 | Hard | ethical - Ethical considerations"
+          },
+          "response": []
+        },
+        {
+          "name": "Hard 7 - Adam optimizer vs SGD",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"question\": \"Explain how Adam optimizer adapts learning rates and why it's preferred over SGD in many scenarios.\",\n  \"top_k\": 5\n}",
+              "options": {"raw": {"language": "json"}}
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/query",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["api", "query"]
+            },
+            "description": "ID 19 | Hard | optimization - Optimization algorithm analysis"
           },
           "response": []
         }
       ],
-      "description": "Sample queries from test_queries.json covering easy, medium, and hard complexity levels."
+      "description": "All 20 test queries from test_queries.json: 5 easy, 8 medium, 7 hard. Covers factual, comparison, multi-hop reasoning, ethical, and optimization queries across various AI/ML topics."
     }
   ],
   "variable": [
