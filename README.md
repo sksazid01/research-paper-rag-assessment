@@ -87,58 +87,6 @@ cp .env.example .env
 
 ## 🏗️ Architecture
 
-```
-┌─────────────────────────────────────────────────────────┐
-│              Next.js Frontend (Port 3456)               │
-│  • Modern React UI with Tailwind CSS                    │
-│  • Real-time SSE streaming responses                    │
-│  • Paper management & query interface                   │
-└────────────────────┬────────────────────────────────────┘
-                     │ HTTP/SSE
-                     ▼
-┌─────────────────────────────────────────────────────────┐
-│              FastAPI Backend (Port 8000)                │
-│  ┌──────────────────────────────────────────────────┐   │
-│  │          Document Ingestion Pipeline             │   │
-│  │  • PDF text extraction (PyPDF2)                  │   │
-│  │  • Section-aware parsing (Abstract, Methods...)  │   │
-│  │  • Intelligent chunking (semantic boundaries)    │   │
-│  │  • Embedding generation (sentence-transformers)  │   │
-│  └──────────────────────────────────────────────────┘   │
-│                                                           │
-│  ┌──────────────────────────────────────────────────┐   │
-│  │         Optimized RAG Query Pipeline             │   │
-│  │  1. Query embedding (with cache)                 │   │
-│  │  2. Vector similarity search (HNSW index)        │   │
-│  │  3. Context assembly (batch DB queries)          │   │
-│  │  4. LLM streaming generation (Ollama/llama3)     │   │
-│  │  5. Citation extraction & confidence scoring     │   │
-│  └──────────────────────────────────────────────────┘   │
-└────────┬────────────────────────┬───────────────────────┘
-         │                        │
-         ▼                        ▼
-┌─────────────────┐    ┌──────────────────────┐
-│   Qdrant DB     │    │   PostgreSQL DB      │
-│  (Port 6333)    │    │   (Port 5433)        │
-│                 │    │                      │
-│ • Vector store  │    │ • Paper metadata     │
-│ • HNSW indexing │    │ • Query history      │
-│ • Payloads      │    │ • Analytics          │
-└─────────────────┘    └──────────────────────┘
-         │
-         ▼
-┌─────────────────────────────────┐
-│      Ollama LLM Server          │
-│      (Host: localhost:11434)    │
-│                                 │
-│  • Model: llama3                │
-│  • Local inference              │
-│  • No API costs                 │
-└─────────────────────────────────┘
-```
-
-### System Architecture Diagram (Mermaid)
-
 ```mermaid
 graph TB
     Client[Client/User]
@@ -197,18 +145,6 @@ graph TB
     style OllamaLLM fill:#16a085
 ```
 
-**Key Components:**
-- **FastAPI**: REST API layer handling HTTP requests
-- **Document Ingestion**: Processes PDFs → chunks → embeddings → storage
-- **RAG Pipeline**: Query → retrieval → context assembly → LLM generation
-- **PostgreSQL**: Stores paper metadata, query history, and analytics
-- **Qdrant**: Vector database for semantic similarity search
-- **Ollama**: Local LLM server running llama3 model
-
-**Data Flow:**
-1. **Upload**: PDF → Extract text → Chunk → Generate embeddings → Store in Qdrant + PostgreSQL
-2. **Query**: User question → Embed query → Search Qdrant → Assemble context → Generate answer with Ollama → Return with citations
-
 ---
 
 ## 🛠️ Setup Instructions
@@ -238,27 +174,7 @@ graph TB
 
 ### Installation
 
-#### Simple Setup (Just Docker)
-
-```bash
-# 1. Clone the repository
-git clone <your-repo-url>
-cd research-paper-rag-assessment
-
-# 2. Create .env file (one-time)
-cp .env.example .env
-
-# 3. Start all services
-docker-compose up --build
-```
-
-That's it! The system will:
-- Build all Docker images
-- Start API, PostgreSQL, and Qdrant
-- Initialize databases
-- Be ready at http://localhost:8000
-
-#### Advanced: With User Permissions (Linux/macOS)
+#### With User Permissions (Linux/macOS)
 
 If you want files created by the container to match your user (avoids permission issues):
 
@@ -353,30 +269,17 @@ POST /api/query
 Content-Type: application/json
 
 {
-  "question": "What methodology was used in the transformer paper?",
+  "question": "What methodology was used?",
   "top_k": 5,
-  "paper_ids": [1, 3],  // optional: limit to specific papers
-  "model": "llama3"     // optional: LLM model
+  "paper_ids": [1, 3],  // optional
+  "model": "llama3"     // optional
 }
-```
-
-**Parameters:**
-- `question` (required): Your research question
-- `top_k` (optional, default=5): Number of chunks to retrieve
-- `paper_ids` (optional): Array of paper IDs to filter search
-- `model` (optional, default=llama3): LLM model to use
-
-**Example:**
-```bash
-curl -X POST http://localhost:8000/api/query \
-  -H "Content-Type: application/json" \
-  -d '{"question":"What is blockchain sustainability?","top_k":5}'
 ```
 
 **Response:**
 ```json
 {
-  "answer": "Based on the provided context, blockchain sustainability refers to...",
+  "answer": "Based on the provided context...",
   "citations": [
     {
       "paper_title": "Sustainability in Blockchain",
@@ -390,55 +293,26 @@ curl -X POST http://localhost:8000/api/query \
 }
 ```
 
-#### 2b. Query Papers with Streaming (Bonus)
+#### 3. Query with Streaming (Bonus)
 ```http
 POST /api/query/stream
 Content-Type: application/json
 Accept: text/event-stream
 ```
 
-Same request body as `/api/query`, but returns Server-Sent Events (SSE) stream for real-time word-by-word responses. Used by the web UI for better user experience.
+Returns Server-Sent Events (SSE) for real-time word-by-word responses (like ChatGPT).
 
-**Example:**
+#### 4. Paper Management
 ```bash
-curl -N -X POST http://localhost:8000/api/query/stream \
-  -H "Content-Type: application/json" \
-  -H "Accept: text/event-stream" \
-  -d '{"question":"What is blockchain?","top_k":3}'
+GET /api/papers              # List all papers
+GET /api/papers/{id}         # Get paper details
+DELETE /api/papers/{id}      # Delete paper
+GET /api/papers/{id}/stats   # Get chunk statistics
+GET /api/queries/history     # Query history
+GET /api/analytics/popular   # Popular topics
 ```
 
-#### 3. List All Papers
-```http
-GET /api/papers
-```
-
-**Example:**
-```bash
-curl http://localhost:8000/api/papers
-```
-
-#### 4. Get Paper Details
-```http
-GET /api/papers/{id}
-```
-
-**Example:**
-```bash
-curl http://localhost:8000/api/papers/1
-```
-
-#### 5. Delete Paper
-```http
-DELETE /api/papers/{id}
-```
-
-**Example:**
-```bash
-curl -X DELETE http://localhost:8000/api/papers/1
-```
-
-#### 6. Get Paper Statistics
-```http
+**📖 Full API Docs:** http://localhost:8000/docshttp
 GET /api/papers/{id}/stats
 ```
 
@@ -468,86 +342,27 @@ The interactive API documentation at /docs reflects all available endpoints.
 
 ## 💡 Usage Examples
 
-### Example 1: Upload and Query a Paper
-
-```bash
-# 1. Upload a paper
-curl -X POST "http://localhost:8000/api/papers/upload" \
-  -F "files=@sample_papers/paper_1.pdf"
-
-# 2. Ask a question
-curl -X POST "http://localhost:8000/api/query?question=What%20are%20the%20scalability%20challenges%3F&top_k=5"
-```
-
-### Example 2: Multi-Paper Analysis
-
-```bash
-# Upload multiple papers
-curl -X POST "http://localhost:8000/api/papers/upload" \
-  -F "files=@sample_papers/paper_1.pdf" \
-  -F "files=@sample_papers/paper_2.pdf"
-
-# Query specific papers (assuming IDs 1 and 2)
-curl -X POST "http://localhost:8000/api/query?question=Compare%20the%20approaches&paper_ids=1,2&top_k=5"
-```
-
-### Example 3: Python Client
+### Example 1: Python Client
 
 ```python
 import requests
 
-# Upload papers
-files = [
-    ('files', open('sample_papers/paper_1.pdf', 'rb')),
-    ('files', open('sample_papers/paper_2.pdf', 'rb'))
-]
-response = requests.post('http://localhost:8000/api/papers/upload', files=files)
-print(response.json())
+files = [('files', open('sample_papers/paper_1.pdf', 'rb'))]
+requests.post('http://localhost:8000/api/papers/upload', files=files)
 
-# Query
-params = {
-    'question': 'What is blockchain?',
-    'top_k': 5,
-    'model': 'llama3'
-}
-response = requests.post('http://localhost:8000/api/query', params=params)
-result = response.json()
-
+body = {"question": "What is blockchain?", "top_k": 5}
+result = requests.post('http://localhost:8000/api/query', json=body).json()
 print(f"Answer: {result['answer']}")
-print(f"Confidence: {result['confidence']}")
-print(f"Citations: {len(result['citations'])}")
 ```
 
-### Example 4: Using Postman Collection
+### Example 2: Postman Collection
 
-For easy API testing, import the provided Postman collection:
+**📬 Import `postman_collection.json`** into Postman for:
+- ✅ 20+ pre-configured requests (all 11 endpoints)
+- ✅ 20 test queries from `test_queries.json` 
+- ✅ Error handling tests
 
-**📬 Postman Collection Available: `postman_collection.json`**
-
-**How to Import:**
-1. Open Postman
-2. Click **Import** button (top-left)
-3. Select **File** tab
-4. Choose `postman_collection.json` from project root
-5. Click **Import**
-
-**What's Included:**
-- ✅ **26 pre-configured requests** across 6 organized folders
-- ✅ All 11 API endpoints with example data
-- ✅ Sample test queries from `test_queries.json` (easy, medium, hard)
-- ✅ Error handling test cases
-- ✅ Health check endpoints
-- ✅ Detailed descriptions for each request
-
-**Folders:**
-1. **Paper Management** - Upload, list, view, delete papers
-2. **Query System** - Query with SSE streaming, filter by papers
-3. **Query History & Analytics** - View history, popular topics
-4. **Health Check** - API status endpoints
-5. **Error Testing** - Validate error handling
-6. **Sample Test Queries** - Pre-configured test questions
-
-**Note:** SSE streaming responses work best with curl or the web UI. Postman may not display streaming events correctly.
+**Import:** Postman → Import → `postman_collection.json`
 
 ---
 
@@ -753,125 +568,38 @@ docker exec -it rag_api bash
 
 ## 🎨 Web Interface
 
-### Access the Frontend
-
-The modern Next.js web interface is **automatically available** when you run `docker-compose up`:
-
-```bash
-# ⚠️  WARNING: Port 3456 MUST be free before running!
-# Check with: ./fix-port-3456.sh
-
-# Start all services (including frontend)
-docker-compose up --build
-
-# Open your browser
-# Frontend: http://localhost:3456  ⚠️  REQUIRES PORT 3456 FREE!
-# API: http://localhost:8000
-```
+**Frontend:** http://localhost:3456 (⚠️ Port must be free!)
 
 **Features:**
-- 📤 **Upload papers** with drag & drop interface
-- 🔍 **Query papers** with real-time SSE streaming responses
-- 📚 **View and manage** all papers with statistics
-- 📊 **Paper analytics** - sections, chunks, and metadata
-- 📜 **Query history** tracking with confidence scores
-- 📈 **Popular topics** visualization
-- ⚡ **Word-by-word streaming** like ChatGPT
-- 🎨 **Beautiful UI** with Tailwind CSS and smooth animations
+- 📤 Drag & drop PDF upload
+- 🔍 Real-time streaming queries (SSE)
+- 📚 Paper management with stats
+- 📊 Query history & analytics
 
-**Tech Stack:**
-- Next.js 14 (App Router) with TypeScript
-- Tailwind CSS for styling
-- Server-Sent Events (SSE) for streaming
-- Lucide Icons
-- Multi-stage Docker build for production optimization
-
-### Development Mode (Local)
-
-For frontend development without Docker:
-
+**Local Dev:**
 ```bash
-cd frontend
-npm install
-npm run dev
-# ⚠️  WARNING: This will use port 3456 - it MUST be free!
-# Open http://localhost:3456
+cd frontend && npm install && npm run dev
 ```
-
-The frontend automatically connects to the API at `http://localhost:8000`.
-
-See `frontend/README.md` for detailed documentation.
 
 ---
 
 ## 🧪 Testing
 
-### Automated Tests
-
 ```bash
-# Run query tests (bash)
-./tests/test_query_api.sh
-
-# Run query tests (Python)
-python tests/test_query_examples.py
-
-# Run paper management tests
-./tests/test_paper_management.sh
+./tests/test_query_api.sh          # Query tests
+python tests/test_query_examples.py # Python tests
 ```
-
-### Manual Testing
-
-1. **Upload a paper:**
-   ```bash
-   curl -X POST "http://localhost:8000/api/papers/upload" \
-     -F "files=@sample_papers/paper_1.pdf"
-   ```
-
-2. **Test query:**
-   ```bash
-   curl -X POST "http://localhost:8000/api/query?question=What%20is%20blockchain%3F&top_k=5"
-   ```
-
-3. **Check results:** View [QUERY_TEST_RESULTS.md](QUERY_TEST_RESULTS.md)
 
 ---
 
 ## 🔧 Development
 
-### Running in Development Mode
-
 ```bash
-# With live reload
-docker-compose up
-
-# View logs in real-time
-docker-compose logs -f api
+docker-compose up                  # Start with live reload
+docker-compose logs -f api         # View logs
+docker-compose down                # Stop (data persists)
+docker-compose down -v             # Stop + clean volumes
 ```
-
-### Making Changes
-
-1. Edit code in `src/`
-2. Container auto-reloads (no restart needed)
-3. Test changes via API
-
-### Stopping Services
-
-```bash
-# Stop containers (data persists)
-docker-compose down
-
-# Stop and remove volumes (clean slate)
-docker-compose down -v
-```
-
----
-
-## 📊 Performance
-
-- **Upload Speed:** ~5-10 papers per minute
-- **Query Latency:** 15-40 seconds (depends on top_k and context size)
-- **Concurrent Queries:** Supports multiple simultaneous requests
-- **Storage:** ~5MB per 20-page paper (including vectors)
 
 ---
 

@@ -1,0 +1,476 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+import axios from 'axios'
+import { Search, Loader2, BookOpen, MapPin, TrendingUp, FileText, X } from 'lucide-react'
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+
+interface Citation {
+  paper_title: string
+  section: string
+  page: number
+  relevance_score: number
+}
+
+interface QueryResponse {
+  answer: string
+  citations: Citation[]
+  sources_used: string[]
+  confidence: number
+  paper_ids_used?: number[]
+}
+
+interface Paper {
+  id: number
+  title: string
+  filename: string
+  authors?: string
+  year?: string
+}
+
+export function QueryInterface() {
+  const [question, setQuestion] = useState('')
+  const [topK, setTopK] = useState(5)
+  const [loading, setLoading] = useState(false)
+  const [response, setResponse] = useState<QueryResponse | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [papers, setPapers] = useState<Paper[]>([])
+  const [selectedPaperIds, setSelectedPaperIds] = useState<number[]>([])
+  const [loadingPapers, setLoadingPapers] = useState(false)
+  const [streamingAnswer, setStreamingAnswer] = useState('')
+
+  // Fetch available papers on component mount
+  useEffect(() => {
+    const fetchPapers = async () => {
+      setLoadingPapers(true)
+      try {
+        const result = await axios.get(`${API_URL}/api/papers`)
+        setPapers(result.data.papers || [])
+      } catch (err) {
+        console.error('Failed to fetch papers:', err)
+      } finally {
+        setLoadingPapers(false)
+      }
+    }
+
+    fetchPapers()
+  }, [])
+
+  const togglePaperSelection = (paperId: number) => {
+    setSelectedPaperIds(prev => 
+      prev.includes(paperId) 
+        ? prev.filter(id => id !== paperId)
+        : [...prev, paperId]
+    )
+  }
+
+  const handleQueryStreaming = async (queryPayload: any) => {
+    setStreamingAnswer('')
+    
+    try {
+      const response = await fetch(`${API_URL}/api/query/stream`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'text/event-stream',
+        },
+        cache: 'no-store',
+        body: JSON.stringify(queryPayload),
+      })
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      const reader = response.body?.getReader()
+      const decoder = new TextDecoder()
+
+      if (!reader) {
+        throw new Error('Response body is not readable')
+      }
+
+  let fullAnswer = ''
+      let metadata: any = null
+      let buffer = '' // Buffer for incomplete lines
+  let sawFirstToken = false
+
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+
+        // Decode chunk and add to buffer
+        buffer += decoder.decode(value, { stream: true })
+        
+        // Split by double newline (SSE event separator)
+        const events = buffer.split('\n\n')
+        
+        // Keep the last incomplete event in buffer
+        buffer = events.pop() || ''
+
+        // Process complete events
+        for (const event of events) {
+          const lines = event.split('\n')
+          
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              try {
+                const jsonStr = line.slice(6).trim()
+                if (!jsonStr) continue
+                
+                const data = JSON.parse(jsonStr)
+                
+                if (data.type === 'token') {
+                  fullAnswer += data.content
+                  setStreamingAnswer(fullAnswer)
+                  if (!sawFirstToken) {
+                    // Drop the loading state as soon as we start receiving data
+                    setLoading(false)
+                    sawFirstToken = true
+                  }
+                } else if (data.type === 'metadata') {
+                  metadata = data
+                } else if (data.type === 'done') {
+                  // Finalize response
+                  if (metadata) {
+                    setResponse({
+                      answer: fullAnswer,
+                      citations: metadata.citations || [],
+                      sources_used: metadata.sources_used || [],
+                      confidence: metadata.confidence || 0,
+                      paper_ids_used: metadata.paper_ids_used || []
+                    })
+                  }
+                } else if (data.type === 'error') {
+                  throw new Error(data.message)
+                }
+              } catch (parseErr) {
+                console.warn('Failed to parse SSE data:', line, parseErr)
+              }
+            }
+          }
+        }
+      }
+    } catch (err: any) {
+      throw err
+    }
+  }
+
+  const handleQuery = async (e: React.FormEvent) => {
+    e.preventDefault()
+    
+    if (!question.trim()) {
+      setError('Please enter a question')
+      return
+    }
+
+    setLoading(true)
+    setError(null)
+    setResponse(null)
+    setStreamingAnswer('')
+
+    try {
+      const queryPayload: any = {
+        question: question.trim(),
+        top_k: topK,
+        model: "llama3"
+      }
+
+      // Add paper_ids filter if papers are selected
+      if (selectedPaperIds.length > 0) {
+        queryPayload.paper_ids = selectedPaperIds
+      }
+
+      // Always use streaming
+      await handleQueryStreaming(queryPayload)
+    } catch (err: any) {
+      let errorMessage = 'Failed to process query. Please try again.'
+      
+      if (err.response?.data?.detail) {
+        const detail = err.response.data.detail
+        if (typeof detail === 'string') {
+          errorMessage = detail
+        } else if (Array.isArray(detail)) {
+          errorMessage = detail.map((e: any) => e.msg || JSON.stringify(e)).join(', ')
+        } else if (typeof detail === 'object') {
+          errorMessage = detail.msg || JSON.stringify(detail)
+        }
+      } else if (err.message) {
+        errorMessage = err.message
+      }
+      
+      setError(errorMessage)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const getConfidenceColor = (confidence: number) => {
+    if (confidence >= 0.8) return 'text-green-600 bg-green-100'
+    if (confidence >= 0.6) return 'text-yellow-600 bg-yellow-100'
+    return 'text-red-600 bg-red-100'
+  }
+
+  return (
+    <div className="max-w-5xl mx-auto">
+      {/* Query Form */}
+      <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8 mb-6">
+        <div className="flex items-center space-x-3 mb-4">
+          <div className="bg-gradient-to-br from-blue-100 to-indigo-100 p-2 rounded-lg">
+            <Search className="w-6 h-6 text-blue-600" />
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900">Ask a Question</h2>
+        </div>
+        <p className="text-gray-600 mb-6 leading-relaxed">
+          Query your indexed research papers using natural language. The AI will search through papers and provide cited answers.
+        </p>
+
+        <form onSubmit={handleQuery} className="space-y-4">
+          <div>
+            <label htmlFor="question" className="block text-sm font-semibold text-gray-700 mb-2">
+              Your Question
+            </label>
+            <textarea
+              id="question"
+              rows={4}
+              value={question}
+              onChange={(e) => setQuestion(e.target.value)}
+              placeholder="e.g., What methodology was used in the transformer paper?"
+              className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all resize-none"
+            />
+          </div>
+
+          {/* Paper Selection */}
+          {papers.length > 0 && (
+            <div className="bg-gradient-to-br from-purple-50 to-pink-50 p-5 rounded-xl border-2 border-purple-200">
+              <div className="flex items-center justify-between mb-3">
+                <label className="block text-sm font-semibold text-gray-700 flex items-center space-x-2">
+                  <FileText className="w-4 h-4 text-purple-600" />
+                  <span>Filter by Papers (Optional)</span>
+                </label>
+                <span className="text-xs text-gray-600">
+                  {selectedPaperIds.length > 0 
+                    ? `${selectedPaperIds.length} selected`
+                    : 'Search all papers'}
+                </span>
+              </div>
+              
+              <div className="max-h-40 overflow-y-auto space-y-2 custom-scrollbar">
+                {papers.map((paper) => (
+                  <label
+                    key={paper.id}
+                    className={`
+                      flex items-start space-x-3 p-3 rounded-lg border-2 cursor-pointer transition-all
+                      ${selectedPaperIds.includes(paper.id)
+                        ? 'bg-purple-100 border-purple-400 shadow-md'
+                        : 'bg-white border-purple-200 hover:border-purple-300 hover:shadow-sm'
+                      }
+                    `}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedPaperIds.includes(paper.id)}
+                      onChange={() => togglePaperSelection(paper.id)}
+                      className="mt-1 w-4 h-4 text-purple-600 rounded focus:ring-2 focus:ring-purple-500"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium text-sm text-gray-900 truncate">
+                        {paper.filename}
+                      </div>
+                      <div className="text-xs text-gray-600 truncate mt-0.5">
+                        {paper.title || 'Untitled'}
+                      </div>
+                    </div>
+                  </label>
+                ))}
+              </div>
+              
+              {selectedPaperIds.length > 0 && (
+                <button
+                  onClick={() => setSelectedPaperIds([])}
+                  className="mt-3 text-xs text-purple-600 hover:text-purple-800 font-medium flex items-center space-x-1"
+                >
+                  <X className="w-3 h-3" />
+                  <span>Clear selection</span>
+                </button>
+              )}
+            </div>
+          )}
+
+          <div className="bg-gradient-to-br from-gray-50 to-slate-50 p-5 rounded-xl border-2 border-gray-200">
+            <div className="flex items-center justify-between mb-4">
+              <label htmlFor="topK" className="block text-sm font-semibold text-gray-700">
+                Number of relevant chunks to retrieve
+              </label>
+              <div className="flex items-center space-x-3">
+                <input
+                  type="number"
+                  min="1"
+                  max="100"
+                  value={topK}
+                  onChange={(e) => {
+                    const val = parseInt(e.target.value) || 1
+                    setTopK(Math.max(1, Math.min(100, val)))
+                  }}
+                  className="w-20 px-3 py-2 border-2 border-blue-200 rounded-lg text-center font-bold text-blue-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+                <span className="text-xs font-medium text-gray-500">chunks</span>
+              </div>
+            </div>
+            
+            <div className="relative">
+              <input
+                id="topK"
+                type="range"
+                min="1"
+                max="20"
+                value={Math.min(topK, 20)}
+                onChange={(e) => setTopK(parseInt(e.target.value))}
+                className="w-full h-3 rounded-lg appearance-none cursor-pointer slider-thumb"
+                style={{
+                  background: `linear-gradient(to right, #3b82f6 0%, #6366f1 ${((Math.min(topK, 20) - 1) / 19) * 100}%, #e5e7eb ${((Math.min(topK, 20) - 1) / 19) * 100}%, #e5e7eb 100%)`
+                }}
+              />
+            </div>
+            
+            <div className="flex justify-between text-xs text-gray-600 mt-3 font-medium">
+              <span className="flex items-center space-x-1">
+                <span className="w-2 h-2 rounded-full bg-blue-600"></span>
+                <span>1 (Focused)</span>
+              </span>
+              <span className="text-gray-500">Use slider (1-20) or type manually (1-100)</span>
+              <span className="flex items-center space-x-1">
+                <span className="w-2 h-2 rounded-full bg-indigo-600"></span>
+                <span>20+ (Comprehensive)</span>
+              </span>
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading || !question.trim()}
+            className={`
+              w-full px-6 py-4 rounded-xl font-semibold flex items-center justify-center space-x-2 transition-all transform
+              ${loading || !question.trim()
+                ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                : 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98]'
+              }
+            `}
+          >
+            {loading ? (
+              <>
+                <Loader2 className="w-6 h-6 animate-spin" />
+                <span className="text-lg">Processing Query...</span>
+              </>
+            ) : (
+              <>
+                <Search className="w-6 h-6" />
+                <span className="text-lg">Search Papers</span>
+              </>
+            )}
+          </button>
+        </form>
+
+        {error && (
+          <div className="mt-4 p-4 bg-red-50 border-l-4 border-red-500 rounded-lg shadow-sm">
+            <p className="text-sm text-red-700 font-medium">{error}</p>
+          </div>
+        )}
+      </div>
+
+      {/* Response */}
+      {(response || streamingAnswer) && (
+        <div className="space-y-6 animate-in fade-in duration-500">
+          {/* Answer Card */}
+          <div className="bg-gradient-to-br from-white to-blue-50/30 rounded-2xl shadow-xl border border-blue-100 p-8">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-2xl font-bold text-gray-900 flex items-center space-x-2">
+                <div className="w-1 h-8 bg-gradient-to-b from-blue-600 to-indigo-600 rounded-full"></div>
+                <span>Answer</span>
+                {streamingAnswer && !response && (
+                  <span className="ml-2 px-2 py-1 text-xs bg-green-100 text-green-700 rounded-full animate-pulse">
+                    Streaming...
+                  </span>
+                )}
+              </h3>
+              {response && (
+                <div className={`px-4 py-2 rounded-full text-sm font-bold shadow-md ${getConfidenceColor(response.confidence)}`}>
+                  {(response.confidence * 100).toFixed(0)}% Confidence
+                </div>
+              )}
+            </div>
+            <div className="prose prose-base max-w-none">
+              <p className="text-gray-800 leading-relaxed whitespace-pre-wrap text-lg">
+                {streamingAnswer || response?.answer}
+                {streamingAnswer && !response && (
+                  <span className="inline-block w-2 h-5 bg-blue-600 ml-1 animate-pulse"></span>
+                )}
+              </p>
+            </div>
+          </div>
+
+          {/* Citations */}
+          {response && response.citations && response.citations.length > 0 && (
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8">
+              <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center space-x-3">
+                <div className="bg-gradient-to-br from-amber-100 to-orange-100 p-2 rounded-lg">
+                  <BookOpen className="w-5 h-5 text-amber-600" />
+                </div>
+                <span>Citations ({response.citations.length})</span>
+              </h3>
+              <div className="space-y-3">
+                {response.citations.map((citation, index) => (
+                  <div
+                    key={index}
+                    className="border-2 border-gray-100 rounded-xl p-5 hover:border-blue-200 hover:shadow-md transition-all bg-gradient-to-r from-white to-gray-50"
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-gray-900 mb-3 flex items-start space-x-2">
+                          <span className="bg-blue-600 text-white px-2 py-0.5 rounded text-xs font-bold">{index + 1}</span>
+                          <span className="flex-1">{citation.paper_title}</span>
+                        </h4>
+                        <div className="flex items-center space-x-4 text-sm text-gray-600">
+                          <span className="flex items-center space-x-1 bg-gray-100 px-3 py-1 rounded-full">
+                            <MapPin className="w-3.5 h-3.5" />
+                            <span className="font-medium">{citation.section}</span>
+                          </span>
+                          <span className="bg-gray-100 px-3 py-1 rounded-full font-medium">Page {citation.page}</span>
+                        </div>
+                      </div>
+                      <div className="ml-4">
+                        <div className="flex items-center space-x-1.5 bg-blue-50 px-3 py-2 rounded-lg">
+                          <TrendingUp className="w-4 h-4 text-blue-600" />
+                          <span className="font-bold text-blue-700 text-sm">
+                            {(citation.relevance_score * 100).toFixed(1)}%
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Sources Used */}
+          {response && response.sources_used && response.sources_used.length > 0 && (
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
+              <h4 className="font-semibold text-gray-900 mb-4 text-lg">Sources Used</h4>
+              <div className="flex flex-wrap gap-2">
+                {response.sources_used.map((source, index) => (
+                  <span
+                    key={index}
+                    className="px-4 py-2 bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-700 border border-blue-200 rounded-full text-sm font-semibold shadow-sm hover:shadow-md transition-all"
+                  >
+                    {source}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
