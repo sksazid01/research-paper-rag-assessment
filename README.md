@@ -349,24 +349,34 @@ curl -X POST "http://localhost:8000/api/papers/upload" \
 
 #### 2. Query Papers (RAG)
 ```http
-POST /api/query?question={query}&top_k={k}&model={model}&paper_ids={ids}
+POST /api/query
+Content-Type: application/json
+
+{
+  "question": "What methodology was used in the transformer paper?",
+  "top_k": 5,
+  "paper_ids": [1, 3],  // optional: limit to specific papers
+  "model": "llama3"     // optional: LLM model
+}
 ```
 
 **Parameters:**
 - `question` (required): Your research question
 - `top_k` (optional, default=5): Number of chunks to retrieve
+- `paper_ids` (optional): Array of paper IDs to filter search
 - `model` (optional, default=llama3): LLM model to use
-- `paper_ids` (optional): Comma-separated paper IDs to filter
 
 **Example:**
 ```bash
-curl -X POST "http://localhost:8000/api/query?question=What%20is%20blockchain%3F&top_k=5"
+curl -X POST http://localhost:8000/api/query \
+  -H "Content-Type: application/json" \
+  -d '{"question":"What is blockchain sustainability?","top_k":5}'
 ```
 
 **Response:**
 ```json
 {
-  "answer": "Based on the provided context, blockchain is defined as...",
+  "answer": "Based on the provided context, blockchain sustainability refers to...",
   "citations": [
     {
       "paper_title": "Sustainability in Blockchain",
@@ -378,6 +388,23 @@ curl -X POST "http://localhost:8000/api/query?question=What%20is%20blockchain%3F
   "sources_used": ["paper_1.pdf"],
   "confidence": 0.54
 }
+```
+
+#### 2b. Query Papers with Streaming (Bonus)
+```http
+POST /api/query/stream
+Content-Type: application/json
+Accept: text/event-stream
+```
+
+Same request body as `/api/query`, but returns Server-Sent Events (SSE) stream for real-time word-by-word responses. Used by the web UI for better user experience.
+
+**Example:**
+```bash
+curl -N -X POST http://localhost:8000/api/query/stream \
+  -H "Content-Type: application/json" \
+  -H "Accept: text/event-stream" \
+  -d '{"question":"What is blockchain?","top_k":3}'
 ```
 
 #### 3. List All Papers

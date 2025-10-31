@@ -66,7 +66,7 @@
               "variable": [
                 {
                   "key": "paper_id",
-                  "value": "1",
+                  "value": "51",
                   "description": "ID of the paper to retrieve"
                 }
               ]
@@ -89,7 +89,7 @@
               "variable": [
                 {
                   "key": "paper_id",
-                  "value": "1",
+                  "value": "51",
                   "description": "ID of the paper to get statistics for"
                 }
               ]
@@ -112,7 +112,7 @@
               "variable": [
                 {
                   "key": "paper_id",
-                  "value": "1",
+                  "value": "51",
                   "description": "ID of the paper to delete"
                 }
               ]
@@ -128,7 +128,67 @@
       "name": "Query System",
       "item": [
         {
-          "name": "Query with SSE Streaming",
+          "name": "Query (Standard JSON Response)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"question\": \"What is blockchain sustainability?\",\n  \"top_k\": 5\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/query",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["api", "query"]
+            },
+            "description": "Query the RAG system and get JSON response with answer, citations, sources, and confidence. This matches the Task Instructions specification."
+          },
+          "response": []
+        },
+        {
+          "name": "Query Specific Papers (JSON)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"question\": \"What methodology was used in the transformer paper?\",\n  \"top_k\": 3,\n  \"paper_ids\": [1, 3]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/query",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["api", "query"]
+            },
+            "description": "Query specific papers by providing paper_ids array. This limits the search to only the specified papers."
+          },
+          "response": []
+        },
+        {
+          "name": "Query with Streaming (Bonus Feature)",
           "request": {
             "method": "POST",
             "header": [
@@ -151,52 +211,18 @@
               }
             },
             "url": {
-              "raw": "http://localhost:8000/api/query",
+              "raw": "http://localhost:8000/api/query/stream",
               "protocol": "http",
               "host": ["localhost"],
               "port": "8000",
-              "path": ["api", "query"]
+              "path": ["api", "query", "stream"]
             },
-            "description": "Query the RAG system with Server-Sent Events (SSE) streaming. Returns answer word-by-word in real-time. Note: Postman may not display SSE streams correctly - use curl or the web UI for best experience."
-          },
-          "response": []
-        },
-        {
-          "name": "Query Specific Papers",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Accept",
-                "value": "text/event-stream"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"question\": \"What methodology was used in the transformer paper?\",\n  \"top_k\": 3,\n  \"paper_ids\": [1, 3]\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "http://localhost:8000/api/query",
-              "protocol": "http",
-              "host": ["localhost"],
-              "port": "8000",
-              "path": ["api", "query"]
-            },
-            "description": "Query specific papers by providing paper_ids array. This limits the search to only the specified papers."
+            "description": "Query the RAG system with Server-Sent Events (SSE) streaming for real-time word-by-word responses. This is a bonus feature used by the web UI. Note: Postman may not display SSE streams correctly - use curl with -N flag or the web UI for best experience."
           },
           "response": []
         }
       ],
-      "description": "Intelligent query system with RAG pipeline, vector search, and LLM generation with SSE streaming."
+      "description": "Intelligent query system with RAG pipeline, vector search, and LLM generation. Includes both standard JSON responses and streaming SSE responses."
     },
     {
       "name": "Query History & Analytics",

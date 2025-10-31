@@ -142,7 +142,92 @@ async def query_papers(
     request: Request
 ):
     """
-    Intelligent Query System - Answer questions using RAG pipeline with streaming response.
+    Intelligent Query System - Answer questions using RAG pipeline.
+    
+    Request body:
+    {
+      "question": "What methodology was used in the transformer paper?",
+      "top_k": 5,
+      "paper_ids": [1, 3]  // optional: limit to specific papers
+      "model": "llama3"     // optional: LLM model to use
+    }
+    
+    Returns JSON response with answer, citations, sources, and confidence score.
+    """
+    import json
+    
+    try:
+        start_time = time.time()
+        
+        # Parse JSON body
+        try:
+            body = await request.json()
+            if not isinstance(body, dict):
+                raise HTTPException(status_code=422, detail="Request body must be a JSON object")
+            
+            question = body.get("question")
+            top_k = int(body.get("top_k", 5))
+            paper_ids = body.get("paper_ids")
+            model = body.get("model", "llama3")
+        except ValueError as ve:
+            raise HTTPException(status_code=422, detail=f"Invalid parameter format: {str(ve)}")
+        except Exception as e:
+            raise HTTPException(status_code=422, detail=f"Invalid request body: {str(e)}")
+
+        if not question or not str(question).strip():
+            raise HTTPException(status_code=422, detail="Field 'question' is required and cannot be empty")
+        
+        # Validate top_k
+        if top_k < 1 or top_k > 50:
+            raise HTTPException(status_code=422, detail="Field 'top_k' must be between 1 and 50")
+        
+        # Import required modules
+        from ..services import rag_pipeline
+        
+        # Use the RAG pipeline to generate answer
+        result = rag_pipeline.answer(question, model=model, top_k=top_k, paper_ids=paper_ids)
+        
+        # Calculate response time
+        response_time_ms = int((time.time() - start_time) * 1000)
+        
+        # Save query history
+        try:
+            save_query_history(
+                question=question,
+                paper_ids=result.get("paper_ids_used", []),
+                response_time_ms=response_time_ms,
+                confidence=result.get("confidence"),
+                rating=None,
+            )
+        except Exception as hist_err:
+            print(f"[WARNING] Failed to save query history: {hist_err}")
+        
+        # Return JSON response matching Task Instructions format
+        return {
+            "answer": result["answer"],
+            "citations": result["citations"],
+            "sources_used": result["sources_used"],
+            "confidence": result["confidence"]
+        }
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        import traceback
+        print(f"[ERROR] Query failed: {e}")
+        print(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=f"Query processing failed: {str(e)}")
+
+
+@router.post("/query/stream")
+async def query_papers_stream(
+    request: Request
+):
+    """
+    Streaming Query System - Answer questions using RAG pipeline with SSE streaming.
+    
+    This is a bonus feature for the web UI to provide real-time streaming responses.
+    For API testing, use the standard POST /api/query endpoint which returns JSON.
     
     Request body:
     {
@@ -188,7 +273,6 @@ async def query_papers(
         async def generate_stream():
             try:
                 # Send an initial SSE comment to open the stream promptly
-                # and help some proxies/browsers start rendering immediately
                 yield ":\n\n"
                 await asyncio.sleep(0)
 
@@ -209,7 +293,6 @@ async def query_papers(
                 for chunk in generate_text_stream(prompt, model=model, max_tokens=512, temperature=0.0):
                     full_answer += chunk
                     yield f"data: {json.dumps({'type': 'token', 'content': chunk})}\n\n"
-                    # Give control back to the loop to flush
                     await asyncio.sleep(0)
 
                 # Extract citations and calculate confidence
@@ -266,9 +349,9 @@ async def query_papers(
         raise
     except Exception as e:
         import traceback
-        print(f"[ERROR] Query setup failed: {e}")
+        print(f"[ERROR] Query stream setup failed: {e}")
         print(traceback.format_exc())
-        raise HTTPException(status_code=500, detail=f"Query processing failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Query streaming failed: {str(e)}")
 
 
 # ============================================================================
