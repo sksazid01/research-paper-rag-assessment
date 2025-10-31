@@ -8,7 +8,7 @@ import time
 
 from ..services import pdf_processor, embedding_service, qdrant_client
 from ..services.chunking import chunk_sentences
-from ..models.db import save_paper_meta, save_query_history, list_recent_queries, get_popular_topics
+from ..models.db import save_paper_meta, save_query_history, list_recent_queries, get_popular_topics, check_paper_exists
 
 router = APIRouter(prefix="/api")
 
@@ -55,6 +55,19 @@ async def upload_papers(
                 detail=f"Only PDF files are accepted. Invalid files: {invalid}. Please upload .pdf files only."
             )
 
+        # Check for duplicate filenames in database
+        duplicates = []
+        for f in files:
+            existing_id = check_paper_exists(f.filename)
+            if existing_id:
+                duplicates.append(f"{f.filename} (already exists with ID: {existing_id})")
+        
+        if duplicates:
+            raise HTTPException(
+                status_code=409,
+                detail=f"Duplicate files detected. Papers with these filenames already exist: {duplicates}. Please delete the existing papers first or rename the files."
+            )
+
         # Ensure temp directory exists (recreate if deleted)
         os.makedirs(UPLOAD_DIR, exist_ok=True)
 
@@ -62,66 +75,92 @@ async def upload_papers(
         qdrant_client.ensure_collection(embedding_service.get_model_dim())
 
         async def process_one(file: UploadFile):
-            # file_path = "temp/paper_1.pdf"
-            file_path = os.path.join(UPLOAD_DIR, file.filename) 
-            # This opens a new file(pdf) for writing in binary mode.
-            with open(file_path, "wb") as f:
-                # the file is physically saved to my  temp/ folder.
-                f.write(await file.read())
+            try:
+                # file_path = "temp/paper_1.pdf"
+                file_path = os.path.join(UPLOAD_DIR, file.filename) 
+                # This opens a new file(pdf) for writing in binary mode.
+                with open(file_path, "wb") as f:
+                    # the file is physically saved to my  temp/ folder.
+                    f.write(await file.read())
 
-            meta, sentences = pdf_processor.extract_sections_and_sentences(file_path)
-            # Save paper metadata
-            paper_id = save_paper_meta(
-                title=meta.get("title"),
-                authors=meta.get("authors"),
-                year=meta.get("year"),
-                filename=file.filename,
-                pages=meta.get("pages"), # return the number of pages
-            )
+                print(f"[INFO] Processing {file.filename}...")
+                
+                # Extract text and metadata from PDF
+                meta, sentences = pdf_processor.extract_sections_and_sentences(file_path)
+                print(f"[INFO] {file.filename}: Extracted {len(sentences)} sentences from {meta.get('pages', 0)} pages")
 
-            # Chunking
-            chunks = chunk_sentences(sentences)
-            texts = [c["text"] for c in chunks]
-            # print(chunks)
+                # Chunking
+                chunks = chunk_sentences(sentences)
+                texts = [c["text"] for c in chunks]
+                print(f"[INFO] {file.filename}: Created {len(chunks)} chunks")
+                
+                if len(chunks) == 0:
+                    raise ValueError(f"No chunks were created from {file.filename}. The PDF might be empty or contain only images.")
 
-            # Embeddings (batched)
-            vectors = embedding_service.get_embeddings(texts)
+                # Embeddings (batched)
+                vectors = embedding_service.get_embeddings(texts)
+                print(f"[INFO] {file.filename}: Generated {len(vectors)} embeddings")
 
-            # Build payloads with metadata
-            payloads = []
-            for c in chunks:
-                payloads.append(
-                    {
-                        "paper_id": paper_id,
-                        "paper_title": meta.get("title"),
-                        "section": c["section"],
-                        "page_start": c["page_start"],
-                        "page_end": c["page_end"],
-                        "chunk_index": c["chunk_index"],
-                        "text": c["text"],
-                    }
+                # Save paper metadata ONLY AFTER successful chunking and embedding
+                paper_id = save_paper_meta(
+                    title=meta.get("title"),
+                    authors=meta.get("authors"),
+                    year=meta.get("year"),
+                    filename=file.filename,
+                    pages=meta.get("pages"), # return the number of pages
                 )
+                print(f"[INFO] {file.filename}: Saved metadata with paper_id={paper_id}")
 
-            qdrant_client.upsert_vectors(vectors, payloads)
+                # Build payloads with metadata
+                payloads = []
+                for c in chunks:
+                    payloads.append(
+                        {
+                            "paper_id": paper_id,
+                            "paper_title": meta.get("title"),
+                            "section": c["section"],
+                            "page_start": c["page_start"],
+                            "page_end": c["page_end"],
+                            "chunk_index": c["chunk_index"],
+                            "text": c["text"],
+                        }
+                    )
 
-            # Save chunks to temp as JSON for inspection / offline use
-            chunks_out = {
-                "paper_id": paper_id,
-                "filename": file.filename,
-                "metadata": meta,
-                "chunks": chunks,
-            }
-            chunks_file = os.path.join(UPLOAD_DIR, f"{os.path.splitext(file.filename)[0]}_chunks.json")
-            with open(chunks_file, "w", encoding="utf-8") as jf:
-                json.dump(chunks_out, jf, ensure_ascii=False, indent=2)
+                # Store vectors in Qdrant
+                qdrant_client.upsert_vectors(vectors, payloads)
+                print(f"[INFO] {file.filename}: Uploaded {len(vectors)} vectors to Qdrant")
 
-            return {
-                "filename": file.filename,
-                "paper_id": paper_id,
-                "metadata": meta,
-                "chunks": len(chunks),
-                "chunks_file": chunks_file,
-            }
+                # Save chunks to temp as JSON for inspection / offline use
+                chunks_out = {
+                    "paper_id": paper_id,
+                    "filename": file.filename,
+                    "metadata": meta,
+                    "chunks": chunks,
+                }
+                chunks_file = os.path.join(UPLOAD_DIR, f"{os.path.splitext(file.filename)[0]}_chunks.json")
+                with open(chunks_file, "w", encoding="utf-8") as jf:
+                    json.dump(chunks_out, jf, ensure_ascii=False, indent=2)
+
+                print(f"[SUCCESS] {file.filename}: Processing complete!")
+                return {
+                    "filename": file.filename,
+                    "paper_id": paper_id,
+                    "metadata": meta,
+                    "chunks": len(chunks),
+                    "chunks_file": chunks_file,
+                    "status": "success"
+                }
+            
+            except Exception as e:
+                error_msg = f"Failed to process {file.filename}: {str(e)}"
+                print(f"[ERROR] {error_msg}")
+                import traceback
+                traceback.print_exc()
+                return {
+                    "filename": file.filename,
+                    "status": "failed",
+                    "error": str(e)
+                }
 
         # Limit concurrency to avoid CPU thrash; process up to 3 at a time
         semaphore = asyncio.Semaphore(3)
@@ -130,8 +169,25 @@ async def upload_papers(
             async with semaphore:
                 return await process_one(f)
 
-        results = await asyncio.gather(*[sem_task(f) for f in files])
-        return {"processed": results}
+        results = await asyncio.gather(*[sem_task(f) for f in files], return_exceptions=False)
+        
+        # Separate successes from failures
+        successes = [r for r in results if r.get("status") == "success"]
+        failures = [r for r in results if r.get("status") == "failed"]
+        
+        response = {
+            "processed": results,
+            "summary": {
+                "total": len(files),
+                "successful": len(successes),
+                "failed": len(failures)
+            }
+        }
+        
+        if failures:
+            response["warning"] = f"{len(failures)} file(s) failed to process. Check the 'processed' array for details."
+        
+        return response
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

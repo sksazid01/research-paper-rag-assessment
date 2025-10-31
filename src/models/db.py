@@ -61,6 +61,13 @@ def init_db():
     Base.metadata.create_all(bind=engine)
 
 
+def check_paper_exists(filename: str) -> Optional[int]:
+    """Check if a paper with the given filename already exists. Returns paper_id if exists, None otherwise."""
+    with SessionLocal() as session:
+        paper = session.query(Paper).filter(Paper.filename == filename).first()
+        return paper.id if paper else None
+
+
 def save_paper_meta(*, title: Optional[str], authors: Optional[str], year: Optional[str], filename: str, pages: Optional[int]) -> int:
     """Persist basic paper metadata and return the DB id."""
     with SessionLocal() as session:

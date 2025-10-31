@@ -8,8 +8,10 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
 interface Citation {
   paper_title: string
+  paper_filename?: string
   section: string
-  page: number
+  page: string | number
+  source_index?: number
   relevance_score: number
 }
 
@@ -321,23 +323,39 @@ export function QueryInterface() {
                 </div>
 
                 <div>
-                  <label htmlFor="topK" className="block text-sm font-semibold text-gray-900 mb-3">
-                    <TrendingUp className="inline h-4 w-4 mr-2 text-indigo-600" />
-                    Number of Sources (top_k): <span className="text-indigo-600 font-bold">{topK}</span>
-                  </label>
-                  <input
-                    id="topK"
-                    type="range"
-                    min="1"
-                    max="10"
-                    value={topK}
-                    onChange={(e) => setTopK(Number(e.target.value))}
-                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider-thumb"
-                    disabled={loading}
-                  />
+                  <div className="flex items-center justify-between mb-3">
+                    <label htmlFor="topK" className="block text-sm font-semibold text-gray-900">
+                      <TrendingUp className="inline h-4 w-4 mr-2 text-indigo-600" />
+                      Number of Sources (top_k):
+                    </label>
+                    <input
+                      type="number"
+                      min="1"
+                      max="100"
+                      value={topK}
+                      onChange={(e) => setTopK(Math.max(1, Math.min(100, Number(e.target.value) || 1)))}
+                      className="w-20 px-3 py-1 text-center border-2 border-indigo-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-indigo-600 font-bold"
+                      disabled={loading}
+                    />
+                  </div>
+                  <div className="relative">
+                    <input
+                      id="topK"
+                      type="range"
+                      min="1"
+                      max="10"
+                      value={Math.min(topK, 10)}
+                      onChange={(e) => setTopK(Number(e.target.value))}
+                      className="w-full h-2 rounded-lg appearance-none cursor-pointer slider-with-fill"
+                      style={{
+                        background: `linear-gradient(to right, #6366f1 0%, #a855f7 ${((Math.min(topK, 10) - 1) / 9) * 100}%, #e5e7eb ${((Math.min(topK, 10) - 1) / 9) * 100}%, #e5e7eb 100%)`
+                      }}
+                      disabled={loading}
+                    />
+                  </div>
                   <div className="flex justify-between text-xs text-gray-500 mt-2">
                     <span>More precise</span>
-                    <span>More comprehensive</span>
+                    <span>More comprehensive (use input for &gt;10)</span>
                   </div>
                 </div>
 
@@ -454,9 +472,19 @@ export function QueryInterface() {
                           className="border-l-4 border-indigo-500 bg-gradient-to-r from-indigo-50 to-transparent rounded-r-lg p-5 hover:shadow-md transition-shadow duration-200"
                         >
                           <div className="flex items-start justify-between mb-2">
-                            <h4 className="font-semibold text-gray-900 flex-1 pr-4">
-                              {citation.paper_title}
-                            </h4>
+                            <div className="flex-1 pr-4">
+                              <div className="flex items-center space-x-3">
+                                <h4 className="font-semibold text-gray-900">
+                                  {citation.paper_title}
+                                </h4>
+                                {citation.source_index && (
+                                  <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-medium">Source {citation.source_index}</span>
+                                )}
+                              </div>
+                              {citation.paper_filename && (
+                                <p className="text-xs text-gray-500 mt-1">{citation.paper_filename}</p>
+                              )}
+                            </div>
                             <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getConfidenceBadge(citation.relevance_score)}`}>
                               {(citation.relevance_score * 100).toFixed(0)}% match
                             </span>

@@ -28,9 +28,15 @@
             "url": {
               "raw": "http://localhost:8000/api/papers/upload",
               "protocol": "http",
-              "host": ["localhost"],
+              "host": [
+                "localhost"
+              ],
               "port": "8000",
-              "path": ["api", "papers", "upload"]
+              "path": [
+                "api",
+                "papers",
+                "upload"
+              ]
             },
             "description": "Upload one or more PDF research papers. The system will extract text, create chunks, generate embeddings, and store in Qdrant and PostgreSQL."
           },
@@ -44,9 +50,14 @@
             "url": {
               "raw": "http://localhost:8000/api/papers",
               "protocol": "http",
-              "host": ["localhost"],
+              "host": [
+                "localhost"
+              ],
               "port": "8000",
-              "path": ["api", "papers"]
+              "path": [
+                "api",
+                "papers"
+              ]
             },
             "description": "Get a list of all uploaded papers with metadata including title, authors, year, filename, pages, and upload date."
           },
@@ -60,9 +71,15 @@
             "url": {
               "raw": "http://localhost:8000/api/papers/:paper_id",
               "protocol": "http",
-              "host": ["localhost"],
+              "host": [
+                "localhost"
+              ],
               "port": "8000",
-              "path": ["api", "papers", ":paper_id"],
+              "path": [
+                "api",
+                "papers",
+                ":paper_id"
+              ],
               "variable": [
                 {
                   "key": "paper_id",
@@ -83,9 +100,16 @@
             "url": {
               "raw": "http://localhost:8000/api/papers/:paper_id/stats",
               "protocol": "http",
-              "host": ["localhost"],
+              "host": [
+                "localhost"
+              ],
               "port": "8000",
-              "path": ["api", "papers", ":paper_id", "stats"],
+              "path": [
+                "api",
+                "papers",
+                ":paper_id",
+                "stats"
+              ],
               "variable": [
                 {
                   "key": "paper_id",
@@ -106,9 +130,15 @@
             "url": {
               "raw": "http://localhost:8000/api/papers/:paper_id",
               "protocol": "http",
-              "host": ["localhost"],
+              "host": [
+                "localhost"
+              ],
               "port": "8000",
-              "path": ["api", "papers", ":paper_id"],
+              "path": [
+                "api",
+                "papers",
+                ":paper_id"
+              ],
               "variable": [
                 {
                   "key": "paper_id",
@@ -149,9 +179,14 @@
             "url": {
               "raw": "http://localhost:8000/api/query",
               "protocol": "http",
-              "host": ["localhost"],
+              "host": [
+                "localhost"
+              ],
               "port": "8000",
-              "path": ["api", "query"]
+              "path": [
+                "api",
+                "query"
+              ]
             },
             "description": "Query the RAG system and get JSON response with answer, citations, sources, and confidence. This matches the Task Instructions specification."
           },
@@ -179,9 +214,14 @@
             "url": {
               "raw": "http://localhost:8000/api/query",
               "protocol": "http",
-              "host": ["localhost"],
+              "host": [
+                "localhost"
+              ],
               "port": "8000",
-              "path": ["api", "query"]
+              "path": [
+                "api",
+                "query"
+              ]
             },
             "description": "Query specific papers by providing paper_ids array. This limits the search to only the specified papers."
           },
@@ -213,9 +253,15 @@
             "url": {
               "raw": "http://localhost:8000/api/query/stream",
               "protocol": "http",
-              "host": ["localhost"],
+              "host": [
+                "localhost"
+              ],
               "port": "8000",
-              "path": ["api", "query", "stream"]
+              "path": [
+                "api",
+                "query",
+                "stream"
+              ]
             },
             "description": "Query the RAG system with Server-Sent Events (SSE) streaming for real-time word-by-word responses. This is a bonus feature used by the web UI. Note: Postman may not display SSE streams correctly - use curl with -N flag or the web UI for best experience."
           },
@@ -235,9 +281,15 @@
             "url": {
               "raw": "http://localhost:8000/api/queries/history?limit=20",
               "protocol": "http",
-              "host": ["localhost"],
+              "host": [
+                "localhost"
+              ],
               "port": "8000",
-              "path": ["api", "queries", "history"],
+              "path": [
+                "api",
+                "queries",
+                "history"
+              ],
               "query": [
                 {
                   "key": "limit",
@@ -258,9 +310,15 @@
             "url": {
               "raw": "http://localhost:8000/api/analytics/popular?limit=10",
               "protocol": "http",
-              "host": ["localhost"],
+              "host": [
+                "localhost"
+              ],
               "port": "8000",
-              "path": ["api", "analytics", "popular"],
+              "path": [
+                "api",
+                "analytics",
+                "popular"
+              ],
               "query": [
                 {
                   "key": "limit",
@@ -287,9 +345,13 @@
             "url": {
               "raw": "http://localhost:8000/",
               "protocol": "http",
-              "host": ["localhost"],
+              "host": [
+                "localhost"
+              ],
               "port": "8000",
-              "path": [""]
+              "path": [
+                ""
+              ]
             },
             "description": "Basic health check endpoint. Returns welcome message and API status."
           },
@@ -303,9 +365,14 @@
             "url": {
               "raw": "http://localhost:8000/api/",
               "protocol": "http",
-              "host": ["localhost"],
+              "host": [
+                "localhost"
+              ],
               "port": "8000",
-              "path": ["api", ""]
+              "path": [
+                "api",
+                ""
+              ]
             },
             "description": "API-specific health check endpoint."
           },
@@ -336,9 +403,15 @@
             "url": {
               "raw": "http://localhost:8000/api/papers/upload",
               "protocol": "http",
-              "host": ["localhost"],
+              "host": [
+                "localhost"
+              ],
               "port": "8000",
-              "path": ["api", "papers", "upload"]
+              "path": [
+                "api",
+                "papers",
+                "upload"
+              ]
             },
             "description": "Test error handling by uploading a non-PDF file. Should return 422 with clear error message."
           },
@@ -366,9 +439,14 @@
             "url": {
               "raw": "http://localhost:8000/api/query",
               "protocol": "http",
-              "host": ["localhost"],
+              "host": [
+                "localhost"
+              ],
               "port": "8000",
-              "path": ["api", "query"]
+              "path": [
+                "api",
+                "query"
+              ]
             },
             "description": "Test error handling with empty question. Should return validation error."
           },
@@ -382,9 +460,15 @@
             "url": {
               "raw": "http://localhost:8000/api/papers/99999",
               "protocol": "http",
-              "host": ["localhost"],
+              "host": [
+                "localhost"
+              ],
               "port": "8000",
-              "path": ["api", "papers", "99999"]
+              "path": [
+                "api",
+                "papers",
+                "99999"
+              ]
             },
             "description": "Test error handling by requesting a non-existent paper ID. Should return 404."
           },
@@ -398,9 +482,15 @@
             "url": {
               "raw": "http://localhost:8000/api/papers/99999",
               "protocol": "http",
-              "host": ["localhost"],
+              "host": [
+                "localhost"
+              ],
               "port": "8000",
-              "path": ["api", "papers", "99999"]
+              "path": [
+                "api",
+                "papers",
+                "99999"
+              ]
             },
             "description": "Test error handling by deleting a non-existent paper. Should return 404."
           },
@@ -416,137 +506,851 @@
           "name": "Q1: Main goal of 'Attention is All You Need'",
           "request": {
             "method": "POST",
-            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"question\": \"What is the main goal of the paper 'Attention is All You Need'?\",\n  \"top_k\": 5\n}",
-              "options": {"raw": {"language": "json"}}
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
             "url": {
-              "raw": "{{base_url}}{{api_prefix}}/query",
-              "host": ["{{base_url}}"],
-              "path": ["{{api_prefix}}","query"]
+              "raw": "http://localhost:8000/api/query",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "query"
+              ]
             },
             "description": "expected_papers: paper3_nlp_transformers.pdf | difficulty: easy | type: single-paper"
           },
           "event": [
-            {"listen": "test", "script": {"exec": [
-              "const resp = pm.response.json();",
-              "pm.test('Has answer', () => typeof resp.answer === 'string');",
-              "const expected = ['paper3_nlp_transformers.pdf'];",
-              "pm.test('Includes expected sources', () => (resp.sources_used||[]).some(s=>expected.includes(s)));"
-            ], "type": "text/javascript"}}
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const resp = pm.response.json();",
+                  "pm.test('Has answer', () => typeof resp.answer === 'string');",
+                  "const expected = ['paper3_nlp_transformers.pdf'];",
+                  "pm.test('Includes expected sources', () => (resp.sources_used||[]).some(s=>expected.includes(s)));"
+                ],
+                "type": "text/javascript"
+              }
+            }
           ]
         },
         {
           "name": "Q2: Activation functions in neural networks",
-          "request": {"method": "POST","header": [{"key":"Content-Type","value":"application/json"}],"body": {"mode":"raw","raw": "{\n  \"question\": \"Which activation functions are commonly used in neural network architectures?\",\n  \"top_k\": 5\n}"},"url": {"raw": "{{base_url}}{{api_prefix}}/query","host":["{{base_url}}"],"path":["{{api_prefix}}","query"]},"description":"expected_papers: paper2_neural_networks.pdf | difficulty: easy | type: single-paper"},
-          "event": [{"listen":"test","script":{"exec":["const r=pm.response.json();","const exp=['paper2_neural_networks.pdf'];","pm.test('Includes expected sources',()=> (r.sources_used||[]).some(s=>exp.includes(s)));"],"type":"text/javascript"}}]
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"question\": \"Which activation functions are commonly used in neural network architectures?\",\n  \"top_k\": 5\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/query",
+              "host": [
+                "localhost"
+              ],
+              "path": [
+                "api",
+                "query"
+              ],
+              "protocol": "http",
+              "port": "8000"
+            },
+            "description": "expected_papers: paper2_neural_networks.pdf | difficulty: easy | type: single-paper"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const r=pm.response.json();",
+                  "const exp=['paper2_neural_networks.pdf'];",
+                  "pm.test('Includes expected sources',()=> (r.sources_used||[]).some(s=>exp.includes(s)));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
         },
         {
           "name": "Q3: Datasets for evaluating CV models",
-          "request": {"method": "POST","header": [{"key":"Content-Type","value":"application/json"}],"body": {"mode":"raw","raw": "{\n  \"question\": \"What datasets are used to evaluate computer vision models in the provided papers?\",\n  \"top_k\": 5\n}"},"url": {"raw": "{{base_url}}{{api_prefix}}/query","host":["{{base_url}}"],"path":["{{api_prefix}}","query"]},"description":"expected_papers: paper4_computer_vision.pdf | difficulty: medium | type: single-paper"},
-          "event": [{"listen":"test","script":{"exec":["const r=pm.response.json();","const exp=['paper4_computer_vision.pdf'];","pm.test('Includes expected sources',()=> (r.sources_used||[]).some(s=>exp.includes(s)));"],"type":"text/javascript"}}]
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"question\": \"What datasets are used to evaluate computer vision models in the provided papers?\",\n  \"top_k\": 5\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/query",
+              "host": [
+                "localhost"
+              ],
+              "path": [
+                "api",
+                "query"
+              ],
+              "protocol": "http",
+              "port": "8000"
+            },
+            "description": "expected_papers: paper4_computer_vision.pdf | difficulty: medium | type: single-paper"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const r=pm.response.json();",
+                  "const exp=['paper4_computer_vision.pdf'];",
+                  "pm.test('Includes expected sources',()=> (r.sources_used||[]).some(s=>exp.includes(s)));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
         },
         {
           "name": "Q4: CNNs vs Transformers for image recognition",
-          "request": {"method": "POST","header": [{"key":"Content-Type","value":"application/json"}],"body": {"mode":"raw","raw": "{\n  \"question\": \"Compare the performance of CNNs and Transformers for image recognition tasks.\",\n  \"top_k\": 5\n}"},"url": {"raw": "{{base_url}}{{api_prefix}}/query","host":["{{base_url}}"],"path":["{{api_prefix}}","query"]},"description":"expected_papers: paper3_nlp_transformers.pdf, paper4_computer_vision.pdf | difficulty: medium | type: multi-paper"},
-          "event": [{"listen":"test","script":{"exec":["const r=pm.response.json();","const exp=['paper3_nlp_transformers.pdf','paper4_computer_vision.pdf'];","pm.test('Includes at least one expected source',()=> (r.sources_used||[]).some(s=>exp.includes(s)));"],"type":"text/javascript"}}]
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"question\": \"Compare the performance of CNNs and Transformers for image recognition tasks.\",\n  \"top_k\": 5\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/query",
+              "host": [
+                "localhost"
+              ],
+              "path": [
+                "api",
+                "query"
+              ],
+              "protocol": "http",
+              "port": "8000"
+            },
+            "description": "expected_papers: paper3_nlp_transformers.pdf, paper4_computer_vision.pdf | difficulty: medium | type: multi-paper"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const r=pm.response.json();",
+                  "const exp=['paper3_nlp_transformers.pdf','paper4_computer_vision.pdf'];",
+                  "pm.test('Includes at least one expected source',()=> (r.sources_used||[]).some(s=>exp.includes(s)));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
         },
         {
           "name": "Q5: Optimization algorithms across ML and DL",
-          "request": {"method": "POST","header": [{"key":"Content-Type","value":"application/json"}],"body": {"mode":"raw","raw": "{\n  \"question\": \"Which optimization algorithms are discussed across the machine learning and deep learning papers?\",\n  \"top_k\": 5\n}"},"url": {"raw": "{{base_url}}{{api_prefix}}/query","host":["{{base_url}}"],"path":["{{api_prefix}}","query"]},"description":"expected_papers: paper1_machine_learning.pdf, paper2_neural_networks.pdf | difficulty: medium | type: multi-paper"},
-          "event": [{"listen":"test","script":{"exec":["const r=pm.response.json();","const exp=['paper1_machine_learning.pdf','paper2_neural_networks.pdf'];","pm.test('Includes at least one expected source',()=> (r.sources_used||[]).some(s=>exp.includes(s)));"],"type":"text/javascript"}}]
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"question\": \"Which optimization algorithms are discussed across the machine learning and deep learning papers?\",\n  \"top_k\": 5\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/query",
+              "host": [
+                "localhost"
+              ],
+              "path": [
+                "api",
+                "query"
+              ],
+              "protocol": "http",
+              "port": "8000"
+            },
+            "description": "expected_papers: paper1_machine_learning.pdf, paper2_neural_networks.pdf | difficulty: medium | type: multi-paper"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const r=pm.response.json();",
+                  "const exp=['paper1_machine_learning.pdf','paper2_neural_networks.pdf'];",
+                  "pm.test('Includes at least one expected source',()=> (r.sources_used||[]).some(s=>exp.includes(s)));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
         },
         {
           "name": "Q6: RL applied to decision-making",
-          "request": {"method": "POST","header": [{"key":"Content-Type","value":"application/json"}],"body": {"mode":"raw","raw": "{\n  \"question\": \"How is reinforcement learning applied to decision-making problems?\",\n  \"top_k\": 5\n}"},"url": {"raw": "{{base_url}}{{api_prefix}}/query","host":["{{base_url}}"],"path":["{{api_prefix}}","query"]},"description":"expected_papers: paper5_reinforcement_learning.pdf | difficulty: easy | type: single-paper"},
-          "event": [{"listen":"test","script":{"exec":["const r=pm.response.json();","const exp=['paper5_reinforcement_learning.pdf'];","pm.test('Includes expected sources',()=> (r.sources_used||[]).some(s=>exp.includes(s)));"],"type":"text/javascript"}}]
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"question\": \"How is reinforcement learning applied to decision-making problems?\",\n  \"top_k\": 5\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/query",
+              "host": [
+                "localhost"
+              ],
+              "path": [
+                "api",
+                "query"
+              ],
+              "protocol": "http",
+              "port": "8000"
+            },
+            "description": "expected_papers: paper5_reinforcement_learning.pdf | difficulty: easy | type: single-paper"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const r=pm.response.json();",
+                  "const exp=['paper5_reinforcement_learning.pdf'];",
+                  "pm.test('Includes expected sources',()=> (r.sources_used||[]).some(s=>exp.includes(s)));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
         },
         {
           "name": "Q7: Summarize transformer methodology",
-          "request": {"method": "POST","header": [{"key":"Content-Type","value":"application/json"}],"body": {"mode":"raw","raw": "{\n  \"question\": \"Summarize the methodology of the transformer model.\",\n  \"top_k\": 5\n}"},"url": {"raw": "{{base_url}}{{api_prefix}}/query","host":["{{base_url}}"],"path":["{{api_prefix}}","query"]},"description":"expected_papers: paper3_nlp_transformers.pdf | difficulty: easy | type: single-paper"},
-          "event": [{"listen":"test","script":{"exec":["const r=pm.response.json();","const exp=['paper3_nlp_transformers.pdf'];","pm.test('Includes expected sources',()=> (r.sources_used||[]).some(s=>exp.includes(s)));"],"type":"text/javascript"}}]
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"question\": \"Summarize the methodology of the transformer model.\",\n  \"top_k\": 5\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/query",
+              "host": [
+                "localhost"
+              ],
+              "path": [
+                "api",
+                "query"
+              ],
+              "protocol": "http",
+              "port": "8000"
+            },
+            "description": "expected_papers: paper3_nlp_transformers.pdf | difficulty: easy | type: single-paper"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const r=pm.response.json();",
+                  "const exp=['paper3_nlp_transformers.pdf'];",
+                  "pm.test('Includes expected sources',()=> (r.sources_used||[]).some(s=>exp.includes(s)));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
         },
         {
           "name": "Q8: Challenges in training deep neural networks",
-          "request": {"method": "POST","header": [{"key":"Content-Type","value":"application/json"}],"body": {"mode":"raw","raw": "{\n  \"question\": \"What are the major challenges in training deep neural networks?\",\n  \"top_k\": 5\n}"},"url": {"raw": "{{base_url}}{{api_prefix}}/query","host":["{{base_url}}"],"path":["{{api_prefix}}","query"]},"description":"expected_papers: paper2_neural_networks.pdf | difficulty: medium | type: single-paper"},
-          "event": [{"listen":"test","script":{"exec":["const r=pm.response.json();","const exp=['paper2_neural_networks.pdf'];","pm.test('Includes expected sources',()=> (r.sources_used||[]).some(s=>exp.includes(s)));"],"type":"text/javascript"}}]
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"question\": \"What are the major challenges in training deep neural networks?\",\n  \"top_k\": 5\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/query",
+              "host": [
+                "localhost"
+              ],
+              "path": [
+                "api",
+                "query"
+              ],
+              "protocol": "http",
+              "port": "8000"
+            },
+            "description": "expected_papers: paper2_neural_networks.pdf | difficulty: medium | type: single-paper"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const r=pm.response.json();",
+                  "const exp=['paper2_neural_networks.pdf'];",
+                  "pm.test('Includes expected sources',()=> (r.sources_used||[]).some(s=>exp.includes(s)));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
         },
         {
           "name": "Q9: Paper introducing attention mechanisms",
-          "request": {"method": "POST","header": [{"key":"Content-Type","value":"application/json"}],"body": {"mode":"raw","raw": "{\n  \"question\": \"Which paper introduces attention mechanisms, and how do they improve performance?\",\n  \"top_k\": 5\n}"},"url": {"raw": "{{base_url}}{{api_prefix}}/query","host":["{{base_url}}"],"path":["{{api_prefix}}","query"]},"description":"expected_papers: paper3_nlp_transformers.pdf | difficulty: easy | type: single-paper"},
-          "event": [{"listen":"test","script":{"exec":["const r=pm.response.json();","const exp=['paper3_nlp_transformers.pdf'];","pm.test('Includes expected sources',()=> (r.sources_used||[]).some(s=>exp.includes(s)));"],"type":"text/javascript"}}]
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"question\": \"Which paper introduces attention mechanisms, and how do they improve performance?\",\n  \"top_k\": 5\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/query",
+              "host": [
+                "localhost"
+              ],
+              "path": [
+                "api",
+                "query"
+              ],
+              "protocol": "http",
+              "port": "8000"
+            },
+            "description": "expected_papers: paper3_nlp_transformers.pdf | difficulty: easy | type: single-paper"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const r=pm.response.json();",
+                  "const exp=['paper3_nlp_transformers.pdf'];",
+                  "pm.test('Includes expected sources',()=> (r.sources_used||[]).some(s=>exp.includes(s)));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
         },
         {
           "name": "Q10: Classical ML vs Deep Learning",
-          "request": {"method": "POST","header": [{"key":"Content-Type","value":"application/json"}],"body": {"mode":"raw","raw": "{\n  \"question\": \"How do classical machine learning methods differ from deep learning approaches?\",\n  \"top_k\": 5\n}"},"url": {"raw": "{{base_url}}{{api_prefix}}/query","host":["{{base_url}}"],"path":["{{api_prefix}}","query"]},"description":"expected_papers: paper1_machine_learning.pdf, paper2_neural_networks.pdf | difficulty: medium | type: multi-paper"},
-          "event": [{"listen":"test","script":{"exec":["const r=pm.response.json();","const exp=['paper1_machine_learning.pdf','paper2_neural_networks.pdf'];","pm.test('Includes at least one expected source',()=> (r.sources_used||[]).some(s=>exp.includes(s)));"],"type":"text/javascript"}}]
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"question\": \"How do classical machine learning methods differ from deep learning approaches?\",\n  \"top_k\": 5\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/query",
+              "host": [
+                "localhost"
+              ],
+              "path": [
+                "api",
+                "query"
+              ],
+              "protocol": "http",
+              "port": "8000"
+            },
+            "description": "expected_papers: paper1_machine_learning.pdf, paper2_neural_networks.pdf | difficulty: medium | type: multi-paper"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const r=pm.response.json();",
+                  "const exp=['paper1_machine_learning.pdf','paper2_neural_networks.pdf'];",
+                  "pm.test('Includes at least one expected source',()=> (r.sources_used||[]).some(s=>exp.includes(s)));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
         },
         {
           "name": "Q11: RL benchmarks",
-          "request": {"method": "POST","header": [{"key":"Content-Type","value":"application/json"}],"body": {"mode":"raw","raw": "{\n  \"question\": \"List the benchmarks used to evaluate reinforcement learning algorithms.\",\n  \"top_k\": 5\n}"},"url": {"raw": "{{base_url}}{{api_prefix}}/query","host":["{{base_url}}"],"path":["{{api_prefix}}","query"]},"description":"expected_papers: paper5_reinforcement_learning.pdf | difficulty: easy | type: single-paper"},
-          "event": [{"listen":"test","script":{"exec":["const r=pm.response.json();","const exp=['paper5_reinforcement_learning.pdf'];","pm.test('Includes expected sources',()=> (r.sources_used||[]).some(s=>exp.includes(s)));"],"type":"text/javascript"}}]
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"question\": \"List the benchmarks used to evaluate reinforcement learning algorithms.\",\n  \"top_k\": 5\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/query",
+              "host": [
+                "localhost"
+              ],
+              "path": [
+                "api",
+                "query"
+              ],
+              "protocol": "http",
+              "port": "8000"
+            },
+            "description": "expected_papers: paper5_reinforcement_learning.pdf | difficulty: easy | type: single-paper"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const r=pm.response.json();",
+                  "const exp=['paper5_reinforcement_learning.pdf'];",
+                  "pm.test('Includes expected sources',()=> (r.sources_used||[]).some(s=>exp.includes(s)));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
         },
         {
           "name": "Q12: Loss functions across architectures",
-          "request": {"method": "POST","header": [{"key":"Content-Type","value":"application/json"}],"body": {"mode":"raw","raw": "{\n  \"question\": \"What loss functions are used across different neural architectures?\",\n  \"top_k\": 5\n}"},"url": {"raw": "{{base_url}}{{api_prefix}}/query","host":["{{base_url}}"],"path":["{{api_prefix}}","query"]},"description":"expected_papers: paper2_neural_networks.pdf, paper4_computer_vision.pdf | difficulty: medium | type: multi-paper"},
-          "event": [{"listen":"test","script":{"exec":["const r=pm.response.json();","const exp=['paper2_neural_networks.pdf','paper4_computer_vision.pdf'];","pm.test('Includes at least one expected source',()=> (r.sources_used||[]).some(s=>exp.includes(s)));"],"type":"text/javascript"}}]
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"question\": \"What loss functions are used across different neural architectures?\",\n  \"top_k\": 5\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/query",
+              "host": [
+                "localhost"
+              ],
+              "path": [
+                "api",
+                "query"
+              ],
+              "protocol": "http",
+              "port": "8000"
+            },
+            "description": "expected_papers: paper2_neural_networks.pdf, paper4_computer_vision.pdf | difficulty: medium | type: multi-paper"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const r=pm.response.json();",
+                  "const exp=['paper2_neural_networks.pdf','paper4_computer_vision.pdf'];",
+                  "pm.test('Includes at least one expected source',()=> (r.sources_used||[]).some(s=>exp.includes(s)));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
         },
         {
           "name": "Q13: How CNNs extract features",
-          "request": {"method": "POST","header": [{"key":"Content-Type","value":"application/json"}],"body": {"mode":"raw","raw": "{\n  \"question\": \"Explain how convolutional neural networks extract features from images.\",\n  \"top_k\": 5\n}"},"url": {"raw": "{{base_url}}{{api_prefix}}/query","host":["{{base_url}}"],"path":["{{api_prefix}}","query"]},"description":"expected_papers: paper4_computer_vision.pdf | difficulty: easy | type: single-paper"},
-          "event": [{"listen":"test","script":{"exec":["const r=pm.response.json();","const exp=['paper4_computer_vision.pdf'];","pm.test('Includes expected sources',()=> (r.sources_used||[]).some(s=>exp.includes(s)));"],"type":"text/javascript"}}]
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"question\": \"Explain how convolutional neural networks extract features from images.\",\n  \"top_k\": 5\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/query",
+              "host": [
+                "localhost"
+              ],
+              "path": [
+                "api",
+                "query"
+              ],
+              "protocol": "http",
+              "port": "8000"
+            },
+            "description": "expected_papers: paper4_computer_vision.pdf | difficulty: easy | type: single-paper"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const r=pm.response.json();",
+                  "const exp=['paper4_computer_vision.pdf'];",
+                  "pm.test('Includes expected sources',()=> (r.sources_used||[]).some(s=>exp.includes(s)));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
         },
         {
           "name": "Q14: RL reward optimization process",
-          "request": {"method": "POST","header": [{"key":"Content-Type","value":"application/json"}],"body": {"mode":"raw","raw": "{\n  \"question\": \"Describe the reinforcement learning reward optimization process.\",\n  \"top_k\": 5\n}"},"url": {"raw": "{{base_url}}{{api_prefix}}/query","host":["{{base_url}}"],"path":["{{api_prefix}}","query"]},"description":"expected_papers: paper5_reinforcement_learning.pdf | difficulty: easy | type: single-paper"},
-          "event": [{"listen":"test","script":{"exec":["const r=pm.response.json();","const exp=['paper5_reinforcement_learning.pdf'];","pm.test('Includes expected sources',()=> (r.sources_used||[]).some(s=>exp.includes(s)));"],"type":"text/javascript"}}]
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"question\": \"Describe the reinforcement learning reward optimization process.\",\n  \"top_k\": 5\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/query",
+              "host": [
+                "localhost"
+              ],
+              "path": [
+                "api",
+                "query"
+              ],
+              "protocol": "http",
+              "port": "8000"
+            },
+            "description": "expected_papers: paper5_reinforcement_learning.pdf | difficulty: easy | type: single-paper"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const r=pm.response.json();",
+                  "const exp=['paper5_reinforcement_learning.pdf'];",
+                  "pm.test('Includes expected sources',()=> (r.sources_used||[]).some(s=>exp.includes(s)));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
         },
         {
           "name": "Q15: Transfer learning across domains",
-          "request": {"method": "POST","header": [{"key":"Content-Type","value":"application/json"}],"body": {"mode":"raw","raw": "{\n  \"question\": \"How can transfer learning be applied across different deep learning domains?\",\n  \"top_k\": 5\n}"},"url": {"raw": "{{base_url}}{{api_prefix}}/query","host":["{{base_url}}"],"path":["{{api_prefix}}","query"]},"description":"expected_papers: paper2_neural_networks.pdf, paper4_computer_vision.pdf | difficulty: medium | type: multi-paper"},
-          "event": [{"listen":"test","script":{"exec":["const r=pm.response.json();","const exp=['paper2_neural_networks.pdf','paper4_computer_vision.pdf'];","pm.test('Includes at least one expected source',()=> (r.sources_used||[]).some(s=>exp.includes(s)));"],"type":"text/javascript"}}]
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"question\": \"How can transfer learning be applied across different deep learning domains?\",\n  \"top_k\": 5\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/query",
+              "host": [
+                "localhost"
+              ],
+              "path": [
+                "api",
+                "query"
+              ],
+              "protocol": "http",
+              "port": "8000"
+            },
+            "description": "expected_papers: paper2_neural_networks.pdf, paper4_computer_vision.pdf | difficulty: medium | type: multi-paper"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const r=pm.response.json();",
+                  "const exp=['paper2_neural_networks.pdf','paper4_computer_vision.pdf'];",
+                  "pm.test('Includes at least one expected source',()=> (r.sources_used||[]).some(s=>exp.includes(s)));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
         },
         {
           "name": "Q16: Training efficiency of gradient descent methods",
-          "request": {"method": "POST","header": [{"key":"Content-Type","value":"application/json"}],"body": {"mode":"raw","raw": "{\n  \"question\": \"Compare the training efficiency of gradient descent methods across all papers.\",\n  \"top_k\": 5\n}"},"url": {"raw": "{{base_url}}{{api_prefix}}/query","host":["{{base_url}}"],"path":["{{api_prefix}}","query"]},"description":"expected_papers: paper1_machine_learning.pdf, paper2_neural_networks.pdf, paper5_reinforcement_learning.pdf | difficulty: hard | type: multi-paper"},
-          "event": [{"listen":"test","script":{"exec":["const r=pm.response.json();","const exp=['paper1_machine_learning.pdf','paper2_neural_networks.pdf','paper5_reinforcement_learning.pdf'];","pm.test('Includes at least one expected source',()=> (r.sources_used||[]).some(s=>exp.includes(s)));"],"type":"text/javascript"}}]
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"question\": \"Compare the training efficiency of gradient descent methods across all papers.\",\n  \"top_k\": 5\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/query",
+              "host": [
+                "localhost"
+              ],
+              "path": [
+                "api",
+                "query"
+              ],
+              "protocol": "http",
+              "port": "8000"
+            },
+            "description": "expected_papers: paper1_machine_learning.pdf, paper2_neural_networks.pdf, paper5_reinforcement_learning.pdf | difficulty: hard | type: multi-paper"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const r=pm.response.json();",
+                  "const exp=['paper1_machine_learning.pdf','paper2_neural_networks.pdf','paper5_reinforcement_learning.pdf'];",
+                  "pm.test('Includes at least one expected source',()=> (r.sources_used||[]).some(s=>exp.includes(s)));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
         },
         {
           "name": "Q17: Highest generalization capability",
-          "request": {"method": "POST","header": [{"key":"Content-Type","value":"application/json"}],"body": {"mode":"raw","raw": "{\n  \"question\": \"Which architectures demonstrated the highest generalization capability?\",\n  \"top_k\": 5\n}"},"url": {"raw": "{{base_url}}{{api_prefix}}/query","host":["{{base_url}}"],"path":["{{api_prefix}}","query"]},"description":"expected_papers: paper2_neural_networks.pdf, paper3_nlp_transformers.pdf, paper4_computer_vision.pdf | difficulty: hard | type: multi-paper"},
-          "event": [{"listen":"test","script":{"exec":["const r=pm.response.json();","const exp=['paper2_neural_networks.pdf','paper3_nlp_transformers.pdf','paper4_computer_vision.pdf'];","pm.test('Includes at least one expected source',()=> (r.sources_used||[]).some(s=>exp.includes(s)));"],"type":"text/javascript"}}]
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"question\": \"Which architectures demonstrated the highest generalization capability?\",\n  \"top_k\": 5\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/query",
+              "host": [
+                "localhost"
+              ],
+              "path": [
+                "api",
+                "query"
+              ],
+              "protocol": "http",
+              "port": "8000"
+            },
+            "description": "expected_papers: paper2_neural_networks.pdf, paper3_nlp_transformers.pdf, paper4_computer_vision.pdf | difficulty: hard | type: multi-paper"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const r=pm.response.json();",
+                  "const exp=['paper2_neural_networks.pdf','paper3_nlp_transformers.pdf','paper4_computer_vision.pdf'];",
+                  "pm.test('Includes at least one expected source',()=> (r.sources_used||[]).some(s=>exp.includes(s)));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
         },
         {
           "name": "Q18: Future research directions in RL",
-          "request": {"method": "POST","header": [{"key":"Content-Type","value":"application/json"}],"body": {"mode":"raw","raw": "{\n  \"question\": \"What are the future research directions suggested by the reinforcement learning paper?\",\n  \"top_k\": 5\n}"},"url": {"raw": "{{base_url}}{{api_prefix}}/query","host":["{{base_url}}"],"path":["{{api_prefix}}","query"]},"description":"expected_papers: paper5_reinforcement_learning.pdf | difficulty: medium | type: single-paper"},
-          "event": [{"listen":"test","script":{"exec":["const r=pm.response.json();","const exp=['paper5_reinforcement_learning.pdf'];","pm.test('Includes expected sources',()=> (r.sources_used||[]).some(s=>exp.includes(s)));"],"type":"text/javascript"}}]
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"question\": \"What are the future research directions suggested by the reinforcement learning paper?\",\n  \"top_k\": 5\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/query",
+              "host": [
+                "localhost"
+              ],
+              "path": [
+                "api",
+                "query"
+              ],
+              "protocol": "http",
+              "port": "8000"
+            },
+            "description": "expected_papers: paper5_reinforcement_learning.pdf | difficulty: medium | type: single-paper"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const r=pm.response.json();",
+                  "const exp=['paper5_reinforcement_learning.pdf'];",
+                  "pm.test('Includes expected sources',()=> (r.sources_used||[]).some(s=>exp.includes(s)));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
         },
         {
           "name": "Q19: Combine attention with convolution",
-          "request": {"method": "POST","header": [{"key":"Content-Type","value":"application/json"}],"body": {"mode":"raw","raw": "{\n  \"question\": \"Discuss how attention mechanisms can be combined with convolutional layers.\",\n  \"top_k\": 5\n}"},"url": {"raw": "{{base_url}}{{api_prefix}}/query","host":["{{base_url}}"],"path":["{{api_prefix}}","query"]},"description":"expected_papers: paper3_nlp_transformers.pdf, paper4_computer_vision.pdf | difficulty: hard | type: multi-paper"},
-          "event": [{"listen":"test","script":{"exec":["const r=pm.response.json();","const exp=['paper3_nlp_transformers.pdf','paper4_computer_vision.pdf'];","pm.test('Includes at least one expected source',()=> (r.sources_used||[]).some(s=>exp.includes(s)));"],"type":"text/javascript"}}]
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"question\": \"Discuss how attention mechanisms can be combined with convolutional layers.\",\n  \"top_k\": 5\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/query",
+              "host": [
+                "localhost"
+              ],
+              "path": [
+                "api",
+                "query"
+              ],
+              "protocol": "http",
+              "port": "8000"
+            },
+            "description": "expected_papers: paper3_nlp_transformers.pdf, paper4_computer_vision.pdf | difficulty: hard | type: multi-paper"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const r=pm.response.json();",
+                  "const exp=['paper3_nlp_transformers.pdf','paper4_computer_vision.pdf'];",
+                  "pm.test('Includes at least one expected source',()=> (r.sources_used||[]).some(s=>exp.includes(s)));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
         },
         {
           "name": "Q20: Ethical considerations across all papers",
-          "request": {"method": "POST","header": [{"key":"Content-Type","value":"application/json"}],"body": {"mode":"raw","raw": "{\n  \"question\": \"What are the ethical considerations mentioned across all papers?\",\n  \"top_k\": 5\n}"},"url": {"raw": "{{base_url}}{{api_prefix}}/query","host":["{{base_url}}"],"path":["{{api_prefix}}","query"]},"description":"expected_papers: paper1_machine_learning.pdf, paper2_neural_networks.pdf, paper3_nlp_transformers.pdf, paper4_computer_vision.pdf, paper5_reinforcement_learning.pdf | difficulty: hard | type: cross-domain"},
-          "event": [{"listen":"test","script":{"exec":["const r=pm.response.json();","const exp=['paper1_machine_learning.pdf','paper2_neural_networks.pdf','paper3_nlp_transformers.pdf','paper4_computer_vision.pdf','paper5_reinforcement_learning.pdf'];","pm.test('Includes at least one expected source',()=> (r.sources_used||[]).some(s=>exp.includes(s)));"],"type":"text/javascript"}}]
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"question\": \"What are the ethical considerations mentioned across all papers?\",\n  \"top_k\": 5\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/query",
+              "host": [
+                "localhost"
+              ],
+              "path": [
+                "api",
+                "query"
+              ],
+              "protocol": "http",
+              "port": "8000"
+            },
+            "description": "expected_papers: paper1_machine_learning.pdf, paper2_neural_networks.pdf, paper3_nlp_transformers.pdf, paper4_computer_vision.pdf, paper5_reinforcement_learning.pdf | difficulty: hard | type: cross-domain"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const r=pm.response.json();",
+                  "const exp=['paper1_machine_learning.pdf','paper2_neural_networks.pdf','paper3_nlp_transformers.pdf','paper4_computer_vision.pdf','paper5_reinforcement_learning.pdf'];",
+                  "pm.test('Includes at least one expected source',()=> (r.sources_used||[]).some(s=>exp.includes(s)));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
         }
       ],
       "description": "20 assessment queries mapped to the provided sample_papers. Each request includes a test that checks sources_used contains at least one expected paper filename."
     }
   ],
-  "variable": [
-    {
-      "key": "base_url",
-      "value": "http://localhost:8000",
-      "type": "string"
-    },
-    {
-      "key": "api_prefix",
-      "value": "/api",
-      "type": "string"
-    }
-  ]
+  "variable": []
 }
