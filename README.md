@@ -491,6 +491,37 @@ print(f"Confidence: {result['confidence']}")
 print(f"Citations: {len(result['citations'])}")
 ```
 
+### Example 4: Using Postman Collection
+
+For easy API testing, import the provided Postman collection:
+
+**📬 Postman Collection Available: `postman_collection.json`**
+
+**How to Import:**
+1. Open Postman
+2. Click **Import** button (top-left)
+3. Select **File** tab
+4. Choose `postman_collection.json` from project root
+5. Click **Import**
+
+**What's Included:**
+- ✅ **26 pre-configured requests** across 6 organized folders
+- ✅ All 11 API endpoints with example data
+- ✅ Sample test queries from `test_queries.json` (easy, medium, hard)
+- ✅ Error handling test cases
+- ✅ Health check endpoints
+- ✅ Detailed descriptions for each request
+
+**Folders:**
+1. **Paper Management** - Upload, list, view, delete papers
+2. **Query System** - Query with SSE streaming, filter by papers
+3. **Query History & Analytics** - View history, popular topics
+4. **Health Check** - API status endpoints
+5. **Error Testing** - Validate error handling
+6. **Sample Test Queries** - Pre-configured test questions
+
+**Note:** SSE streaming responses work best with curl or the web UI. Postman may not display streaming events correctly.
+
 ---
 
 ## 📁 Project Structure

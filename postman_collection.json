@@ -1,0 +1,575 @@
+{
+  "info": {
+    "name": "Research Paper RAG System API",
+    "description": "Complete API collection for testing the Research Paper RAG System with all endpoints including upload, query, paper management, and analytics.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "research-paper-rag"
+  },
+  "item": [
+    {
+      "name": "Paper Management",
+      "item": [
+        {
+          "name": "Upload Papers",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "files",
+                  "type": "file",
+                  "src": "sample_papers/paper_1.pdf",
+                  "description": "PDF file to upload (you can select multiple files)"
+                }
+              ]
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/papers/upload",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["api", "papers", "upload"]
+            },
+            "description": "Upload one or more PDF research papers. The system will extract text, create chunks, generate embeddings, and store in Qdrant and PostgreSQL."
+          },
+          "response": []
+        },
+        {
+          "name": "List All Papers",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8000/api/papers",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["api", "papers"]
+            },
+            "description": "Get a list of all uploaded papers with metadata including title, authors, year, filename, pages, and upload date."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Paper Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8000/api/papers/:paper_id",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["api", "papers", ":paper_id"],
+              "variable": [
+                {
+                  "key": "paper_id",
+                  "value": "1",
+                  "description": "ID of the paper to retrieve"
+                }
+              ]
+            },
+            "description": "Get detailed information about a specific paper by its ID."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Paper Stats",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8000/api/papers/:paper_id/stats",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["api", "papers", ":paper_id", "stats"],
+              "variable": [
+                {
+                  "key": "paper_id",
+                  "value": "1",
+                  "description": "ID of the paper to get statistics for"
+                }
+              ]
+            },
+            "description": "Get statistics for a specific paper including number of chunks stored in Qdrant vector database."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Paper",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8000/api/papers/:paper_id",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["api", "papers", ":paper_id"],
+              "variable": [
+                {
+                  "key": "paper_id",
+                  "value": "1",
+                  "description": "ID of the paper to delete"
+                }
+              ]
+            },
+            "description": "Delete a paper and all its associated vectors from Qdrant. This operation cannot be undone."
+          },
+          "response": []
+        }
+      ],
+      "description": "Endpoints for managing research papers - upload, list, view details, get stats, and delete."
+    },
+    {
+      "name": "Query System",
+      "item": [
+        {
+          "name": "Query with SSE Streaming",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "text/event-stream"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"question\": \"What is blockchain sustainability?\",\n  \"top_k\": 5\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/query",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["api", "query"]
+            },
+            "description": "Query the RAG system with Server-Sent Events (SSE) streaming. Returns answer word-by-word in real-time. Note: Postman may not display SSE streams correctly - use curl or the web UI for best experience."
+          },
+          "response": []
+        },
+        {
+          "name": "Query Specific Papers",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "text/event-stream"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"question\": \"What methodology was used in the transformer paper?\",\n  \"top_k\": 3,\n  \"paper_ids\": [1, 3]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/query",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["api", "query"]
+            },
+            "description": "Query specific papers by providing paper_ids array. This limits the search to only the specified papers."
+          },
+          "response": []
+        }
+      ],
+      "description": "Intelligent query system with RAG pipeline, vector search, and LLM generation with SSE streaming."
+    },
+    {
+      "name": "Query History & Analytics",
+      "item": [
+        {
+          "name": "Get Query History",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8000/api/queries/history?limit=20",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["api", "queries", "history"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "description": "Number of recent queries to retrieve (default: 20)"
+                }
+              ]
+            },
+            "description": "Retrieve recent query history with question, response time, confidence score, and referenced paper IDs."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Popular Topics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8000/api/analytics/popular?limit=10",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["api", "analytics", "popular"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "Number of top topics to retrieve (default: 10)"
+                }
+              ]
+            },
+            "description": "Get most frequently queried topics based on keyword extraction from recent queries. Useful for understanding user interests and trends."
+          },
+          "response": []
+        }
+      ],
+      "description": "Analytics endpoints for tracking query history and popular topics."
+    },
+    {
+      "name": "Health Check",
+      "item": [
+        {
+          "name": "Root Endpoint",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8000/",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": [""]
+            },
+            "description": "Basic health check endpoint. Returns welcome message and API status."
+          },
+          "response": []
+        },
+        {
+          "name": "API Health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8000/api/",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["api", ""]
+            },
+            "description": "API-specific health check endpoint."
+          },
+          "response": []
+        }
+      ],
+      "description": "Health check endpoints to verify the API is running."
+    },
+    {
+      "name": "Error Testing",
+      "item": [
+        {
+          "name": "Upload Invalid File Type",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "files",
+                  "type": "file",
+                  "src": "README.md",
+                  "description": "Non-PDF file to test error handling"
+                }
+              ]
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/papers/upload",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["api", "papers", "upload"]
+            },
+            "description": "Test error handling by uploading a non-PDF file. Should return 422 with clear error message."
+          },
+          "response": []
+        },
+        {
+          "name": "Query with Empty Question",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"question\": \"\",\n  \"top_k\": 3\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/query",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["api", "query"]
+            },
+            "description": "Test error handling with empty question. Should return validation error."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Non-existent Paper",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8000/api/papers/99999",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["api", "papers", "99999"]
+            },
+            "description": "Test error handling by requesting a non-existent paper ID. Should return 404."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Non-existent Paper",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8000/api/papers/99999",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["api", "papers", "99999"]
+            },
+            "description": "Test error handling by deleting a non-existent paper. Should return 404."
+          },
+          "response": []
+        }
+      ],
+      "description": "Test cases for error handling and validation across different endpoints."
+    },
+    {
+      "name": "Sample Test Queries",
+      "item": [
+        {
+          "name": "Easy - What is machine learning?",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "text/event-stream"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"question\": \"What is machine learning?\",\n  \"top_k\": 5\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/query",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["api", "query"]
+            },
+            "description": "Test query from test_queries.json - Easy factual question"
+          },
+          "response": []
+        },
+        {
+          "name": "Medium - Compare supervised vs unsupervised learning",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "text/event-stream"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"question\": \"Compare supervised and unsupervised learning approaches.\",\n  \"top_k\": 5\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/query",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["api", "query"]
+            },
+            "description": "Test query from test_queries.json - Medium comparison question"
+          },
+          "response": []
+        },
+        {
+          "name": "Hard - BERT and transfer learning",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "text/event-stream"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"question\": \"How do pre-trained language models like BERT leverage transfer learning, and what makes them effective for downstream tasks?\",\n  \"top_k\": 5\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/query",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["api", "query"]
+            },
+            "description": "Test query from test_queries.json - Hard multi-hop reasoning question"
+          },
+          "response": []
+        },
+        {
+          "name": "Medium - Transformer improvements over RNNs",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "text/event-stream"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"question\": \"How do transformers improve upon traditional RNN architectures?\",\n  \"top_k\": 5\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/query",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["api", "query"]
+            },
+            "description": "Test query from test_queries.json - Medium methodology comparison"
+          },
+          "response": []
+        },
+        {
+          "name": "Hard - Model accuracy vs efficiency trade-offs",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "text/event-stream"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"question\": \"What are the trade-offs between model accuracy and computational efficiency in deep learning?\",\n  \"top_k\": 5\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/query",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["api", "query"]
+            },
+            "description": "Test query from test_queries.json - Hard comparative analysis question"
+          },
+          "response": []
+        }
+      ],
+      "description": "Sample queries from test_queries.json covering easy, medium, and hard complexity levels."
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000",
+      "type": "string"
+    },
+    {
+      "key": "api_prefix",
+      "value": "/api",
+      "type": "string"
+    }
+  ]
+}
