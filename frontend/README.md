@@ -38,7 +38,9 @@ Modern Next.js web application for the Research Paper RAG system.
    ```
 
 4. **Open browser**:
-   Navigate to [http://localhost:3000](http://localhost:3000)
+   ⚠️ **WARNING: Port 3456 MUST be free!**
+   
+   Navigate to [http://localhost:3456](http://localhost:3456)
 
 ## Build for Production
 

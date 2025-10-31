@@ -16,14 +16,29 @@ ollama pull llama3
 # 2. Clone and run the project
 git clone <your-repo-url>
 cd research-paper-rag-assessment
-docker-compose up --build
+docker compose up --build
 ```
 
-That's it! The system will be ready at http://localhost:8000
+That's it! The system will be ready:
+- **API**: http://localhost:8000
+- **Frontend**: http://localhost:3456
+
+**⚠️  CRITICAL WARNING: Port 3456 MUST be FREE to run the frontend!**
 
 **Quick test:**
 ```bash
 curl -X POST -F "files=@sample_papers/paper_1.pdf" http://localhost:8000/api/papers/upload
+```
+
+**⚠️ Port Conflict?** If you see `Error: bind: address already in use`:
+```bash
+# WARNING: You MUST free port 3456 before starting Docker!
+
+# Use the helper script:
+./fix-port-3456.sh
+
+# Or manually kill the process on port 3456:
+sudo kill -9 $(lsof -t -i:3456)
 ```
 
 **Note:** On first run, copy `.env.example` to `.env` if it doesn't exist:
@@ -59,13 +74,14 @@ cp .env.example .env
 - 🎨 **Modern Web UI** - Next.js/React frontend with beautiful interface
 
 ### Technical Features
-- 🐳 **Docker-Based** - One-command deployment
+- 🐳 **Fully Dockerized** - Backend, frontend, and databases all containerized
 - 🔄 **Live Reload** - Development mode with auto-reload
 - 🗄️ **PostgreSQL Storage** - Persistent metadata storage
-- 🔍 **Qdrant Vector DB** - Fast similarity search
+- 🔍 **Qdrant Vector DB** - Fast similarity search with HNSW indexing
 - 🤖 **Ollama Integration** - Local LLM for answer generation
 - 📊 **Structured Responses** - JSON API with proper error handling
-- 🎨 **Web Interface** - Beautiful, responsive UI built with Next.js & Tailwind CSS
+- 🎨 **Modern Web UI** - Beautiful, responsive Next.js app with SSE streaming
+- ⚡ **Performance Optimized** - Query caching, batch operations, score thresholding
 
 ---
 
@@ -73,12 +89,15 @@ cp .env.example .env
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│                    Client (HTTP)                         │
+│              Next.js Frontend (Port 3456)               │
+│  • Modern React UI with Tailwind CSS                    │
+│  • Real-time SSE streaming responses                    │
+│  • Paper management & query interface                   │
 └────────────────────┬────────────────────────────────────┘
-                     │
+                     │ HTTP/SSE
                      ▼
 ┌─────────────────────────────────────────────────────────┐
-│              FastAPI Application (Port 8000)             │
+│              FastAPI Backend (Port 8000)                │
 │  ┌──────────────────────────────────────────────────┐   │
 │  │          Document Ingestion Pipeline             │   │
 │  │  • PDF text extraction (PyPDF2)                  │   │
@@ -88,11 +107,11 @@ cp .env.example .env
 │  └──────────────────────────────────────────────────┘   │
 │                                                           │
 │  ┌──────────────────────────────────────────────────┐   │
-│  │              RAG Query Pipeline                   │   │
-│  │  1. Query embedding                               │   │
-│  │  2. Vector similarity search (Qdrant)            │   │
-│  │  3. Context assembly with citations              │   │
-│  │  4. LLM generation (Ollama/llama3)               │   │
+│  │         Optimized RAG Query Pipeline             │   │
+│  │  1. Query embedding (with cache)                 │   │
+│  │  2. Vector similarity search (HNSW index)        │   │
+│  │  3. Context assembly (batch DB queries)          │   │
+│  │  4. LLM streaming generation (Ollama/llama3)     │   │
 │  │  5. Citation extraction & confidence scoring     │   │
 │  └──────────────────────────────────────────────────┘   │
 └────────┬────────────────────────┬───────────────────────┘
@@ -103,8 +122,8 @@ cp .env.example .env
 │  (Port 6333)    │    │   (Port 5433)        │
 │                 │    │                      │
 │ • Vector store  │    │ • Paper metadata     │
-│ • Embeddings    │    │ • Author info        │
-│ • Payloads      │    │ • Timestamps         │
+│ • HNSW indexing │    │ • Query history      │
+│ • Payloads      │    │ • Analytics          │
 └─────────────────┘    └──────────────────────┘
          │
          ▼
@@ -478,37 +497,48 @@ print(f"Citations: {len(result['citations'])}")
 
 ```
 research-paper-rag-assessment/
-├── src/
+├── src/                             # Backend Python code
 │   ├── __init__.py
 │   ├── main.py                      # FastAPI application entry point
 │   ├── api/
 │   │   ├── __init__.py
-│   │   └── routes.py                # API endpoint definitions
+│   │   └── routes.py                # API endpoint definitions with SSE streaming
 │   ├── models/
 │   │   ├── __init__.py
 │   │   └── db.py                    # SQLAlchemy models (papers, queries)
 │   └── services/
 │       ├── __init__.py
 │       ├── pdf_processor.py         # PDF extraction logic
-│       ├── embedding_service.py     # Sentence transformers
-│       ├── qdrant_client.py         # Qdrant vector DB client
-│       ├── rag_pipeline.py          # RAG query pipeline
-│       ├── ollama_client.py         # Ollama LLM client
+│       ├── embedding_service.py     # Sentence transformers with caching
+│       ├── qdrant_client.py         # Qdrant client with HNSW indexing
+│       ├── rag_pipeline.py          # RAG query pipeline with optimizations
+│       ├── ollama_client.py         # Ollama LLM client with streaming
 │       └── chunking.py              # Text chunking strategies
+├── frontend/                        # Next.js web interface
+│   ├── app/                         # Next.js App Router
+│   ├── components/                  # React components
+│   │   ├── QueryInterface.tsx       # Query UI with SSE streaming
+│   │   ├── PaperList.tsx           # Paper management
+│   │   └── FileUpload.tsx          # Drag & drop upload
+│   ├── Dockerfile                   # Frontend container (multi-stage)
+│   ├── package.json                 # Node.js dependencies
+│   ├── next.config.js               # Next.js configuration
+│   └── tailwind.config.js           # Tailwind CSS configuration
 ├── sample_papers/                   # Test PDF files
 ├── temp/                            # Uploaded files & chunks (auto-created)
-├── docker-compose.yml               # Docker services configuration
-├── Dockerfile                       # API service container
+├── docker-compose.yml               # All services: frontend, API, DB, Qdrant
+├── Dockerfile                       # Backend API container
 ├── requirements.txt                 # Python dependencies
 ├── .env.example                     # Environment variables example
 ├── .env                             # Environment variables (local)
 ├── setup.sh                         # One-command setup script
 ├── verify.sh                        # Quick environment verification
+├── QUERY_OPTIMIZATION.md            # Performance optimization docs
 ├── README.md                        # This file
 └── tests/                           # Test scripts
-  ├── test_query_api.sh
-  ├── test_query_examples.py
-  └── test_paper_management.{py,sh}
+    ├── test_query_api.sh
+    ├── test_query_examples.py
+    └── test_paper_management.{py,sh}
 ```
 
 ---
@@ -538,13 +568,14 @@ GID=1000
 
 ### Docker Services
 
-The `docker-compose.yml` defines three services:
+The `docker-compose.yml` defines four services:
 
-1. **API (FastAPI)** - Port 8000
-2. **PostgreSQL** - Port 5433 (mapped from 5432)
-3. **Qdrant** - Ports 6333, 6334
+1. **Frontend (Next.js)** - Port 3456 - Modern web interface ⚠️ **MUST BE FREE!**
+2. **API (FastAPI)** - Port 8000 - Backend REST API
+3. **PostgreSQL** - Port 5433 (mapped from 5432) - Paper metadata
+4. **Qdrant** - Ports 6333, 6334 - Vector database
 
-All services use persistent volumes to preserve data.
+All services use persistent volumes to preserve data across restarts.
 
 ---
 
@@ -582,25 +613,64 @@ docker-compose down
 ./setup.sh
 ```
 
-#### 3. Port Already in Use
-**Symptom:** Docker fails to start
+#### 3. Port 3456 Already in Use (Frontend Conflict)
+**⚠️  CRITICAL WARNING: Port 3456 MUST be FREE to run the frontend!**
+
+**Symptom:** `Error: bind: address already in use` when starting frontend container
+
+**Cause:** You're running `npm run dev` locally in the frontend folder or another service is using port 3456
+
+**Solution:**
+
+**Quick Fix - Use the helper script:**
+```bash
+./fix-port-3456.sh
+```
+
+**Manual Fix:**
+```bash
+# Check what's using port 3456
+lsof -i :3456
+
+# Kill the process (usually npm dev server)
+sudo kill -9 $(lsof -t -i:3456)
+
+# Or stop npm dev server in frontend terminal
+# Press Ctrl+C in the terminal running npm run dev
+
+# Then start Docker
+docker compose up --build
+```
+
+**⚠️  IMPORTANT:** The frontend always runs on port 3456. If you need to:
+- **Use Docker**: Stop local npm dev server first - **PORT 3456 MUST BE FREE!**
+- **Use Local Dev**: Stop Docker frontend with `docker compose stop frontend`
+
+#### 4. Port 8000 Already in Use (Backend Conflict)
+**Symptom:** Backend API fails to start
 
 **Solution:**
 ```bash
-# Check what's using the port
+# Check what's using port 8000
 sudo lsof -i :8000
 
-# Stop conflicting service or change port in docker-compose.yml
+# Stop conflicting service
+sudo kill -9 $(lsof -t -i:8000)
+
+# Or stop all containers and restart
+docker compose down
+docker compose up --build
 ```
 
-#### 4. Container Fails to Start
+#### 5. Container Fails to Start
 **Solution:**
 ```bash
 # Check logs
-docker-compose logs api
+docker compose logs api
+docker compose logs frontend
 
 # Rebuild from scratch
-docker-compose down -v
+docker compose down -v
 docker system prune -f
 ./setup.sh
 ```
@@ -625,37 +695,52 @@ docker exec -it rag_api bash
 
 ## 🎨 Web Interface
 
-### Setup Frontend (Optional)
+### Access the Frontend
 
-The project includes a modern Next.js web interface for easier interaction:
+The modern Next.js web interface is **automatically available** when you run `docker-compose up`:
 
 ```bash
-# Navigate to frontend directory
-cd frontend
+# ⚠️  WARNING: Port 3456 MUST be free before running!
+# Check with: ./fix-port-3456.sh
 
-# Install dependencies
-npm install
+# Start all services (including frontend)
+docker-compose up --build
 
-# Start development server
-npm run dev
-
-# Open browser at http://localhost:3000
+# Open your browser
+# Frontend: http://localhost:3456  ⚠️  REQUIRES PORT 3456 FREE!
+# API: http://localhost:8000
 ```
 
 **Features:**
-- 📤 Upload papers with drag & drop
-- 🔍 Query papers with real-time results
-- 📚 View and manage all papers
-- 📊 Paper statistics and analytics
-- 📜 Query history tracking
-- 📈 Popular topics visualization
+- 📤 **Upload papers** with drag & drop interface
+- 🔍 **Query papers** with real-time SSE streaming responses
+- 📚 **View and manage** all papers with statistics
+- 📊 **Paper analytics** - sections, chunks, and metadata
+- 📜 **Query history** tracking with confidence scores
+- 📈 **Popular topics** visualization
+- ⚡ **Word-by-word streaming** like ChatGPT
+- 🎨 **Beautiful UI** with Tailwind CSS and smooth animations
 
 **Tech Stack:**
-- Next.js 14 (App Router)
-- TypeScript
-- Tailwind CSS
+- Next.js 14 (App Router) with TypeScript
+- Tailwind CSS for styling
+- Server-Sent Events (SSE) for streaming
 - Lucide Icons
-- Axios for API calls
+- Multi-stage Docker build for production optimization
+
+### Development Mode (Local)
+
+For frontend development without Docker:
+
+```bash
+cd frontend
+npm install
+npm run dev
+# ⚠️  WARNING: This will use port 3456 - it MUST be free!
+# Open http://localhost:3456
+```
+
+The frontend automatically connects to the API at `http://localhost:8000`.
 
 See `frontend/README.md` for detailed documentation.
 

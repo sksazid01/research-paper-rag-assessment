@@ -27,7 +27,8 @@ if [ $? -eq 0 ]; then
     echo "📝 Next steps:"
     echo "   1. Make sure the backend API is running on http://localhost:8000"
     echo "   2. Run: npm run dev"
-    echo "   3. Open: http://localhost:3000"
+    echo "   ⚠️  WARNING: Port 3456 MUST be free!"
+    echo "   3. Open: http://localhost:3456"
     echo ""
 else
     echo ""

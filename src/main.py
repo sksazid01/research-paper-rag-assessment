@@ -12,7 +12,7 @@ app = FastAPI(title="Research Paper RAG System")
 # Add CORS middleware to allow frontend requests
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],  # Frontend URLs
+    allow_origins=["http://localhost:3456", "http://127.0.0.1:3456"],  # Frontend URLs (PORT 3456)
     allow_credentials=True,
     allow_methods=["*"],  # Allow all methods (GET, POST, DELETE, etc.)
     allow_headers=["*"],  # Allow all headers
