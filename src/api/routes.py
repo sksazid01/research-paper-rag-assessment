@@ -1,7 +1,7 @@
 import asyncio
 import json
 import os
-from typing import List, Optional, Union
+from typing import List
 
 from fastapi import APIRouter, UploadFile, HTTPException, File, Request
 import time
@@ -49,6 +49,7 @@ async def upload_papers(
             ctype = (f.content_type or "").lower()
             if not (fname.endswith(".pdf") or ctype == "application/pdf"):
                 invalid.append(f.filename)
+                break
         if invalid:
             raise HTTPException(
                 status_code=422,
@@ -61,6 +62,8 @@ async def upload_papers(
             existing_id = check_paper_exists(f.filename)
             if existing_id:
                 duplicates.append(f"{f.filename} (already exists with ID: {existing_id})")
+                break
+                
         
         if duplicates:
             raise HTTPException(
@@ -91,17 +94,18 @@ async def upload_papers(
 
                 # Chunking
                 chunks = chunk_sentences(sentences)
-                texts = [c["text"] for c in chunks]
+                texts = [c["text"] for c in chunks] # extract all test from 'test' section
                 print(f"[INFO] {file.filename}: Created {len(chunks)} chunks")
                 
                 if len(chunks) == 0:
                     raise ValueError(f"No chunks were created from {file.filename}. The PDF might be empty or contain only images.")
 
                 # Embeddings (batched)
-                vectors = embedding_service.get_embeddings(texts)
-                print(f"[INFO] {file.filename}: Generated {len(vectors)} embeddings")
+                vectors = embedding_service.get_embeddings(texts) # Converts all chunk texts into numerical embeddings
+                print(f"[INFO] {file.filename}: Generated {len(vectors)} embeddings") 
 
                 # Save paper metadata ONLY AFTER successful chunking and embedding
+                # Unique ID for all papers
                 paper_id = save_paper_meta(
                     title=meta.get("title"),
                     authors=meta.get("authors"),
@@ -114,6 +118,7 @@ async def upload_papers(
                 # Build payloads with metadata
                 payloads = []
                 for c in chunks:
+                    # payload = id + metadata + chunk
                     payloads.append(
                         {
                             "paper_id": paper_id,

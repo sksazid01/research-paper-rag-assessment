@@ -5,7 +5,6 @@ from typing import Dict
 from .models.db import init_db, SessionLocal, Paper
 from .services import qdrant_client
 from .api.routes import router
-from .models.db import init_db
 
 app = FastAPI(title="Research Paper RAG System")
 

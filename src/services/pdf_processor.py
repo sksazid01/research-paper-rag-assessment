@@ -22,7 +22,7 @@ def _is_valid_title(text: str) -> bool:
     if not text or len(text.strip()) < 10:
         return False
     
-    text = text.strip()
+    text = text.strip()  # "\n\n   Title of Paper   \n" -----> "Title of Paper"
     
     # Reject if it's just numbers, dots, or too short
     if re.match(r'^[\d\s\.\,\-]+$', text):
@@ -118,7 +118,7 @@ def extract_pages_text(file_path: str) -> List[Tuple[int, str]]:
         # Simpler: fall back to PyPDF2 per page to avoid overhead
         text = reader.pages[i].extract_text() or ""
         pages.append((i + 1, text))
-    return pages
+    return pages  # pages = [(1, "Text from page 1"), (2, "Text from page 2"), ...]
 
 
 def extract_sections_and_sentences(file_path: str):
@@ -134,9 +134,9 @@ def extract_sections_and_sentences(file_path: str):
     sentences: List[Dict] = []
 
     # iterate pages and lines to detect headings
-    for page_no, page_text in pages:
+    for page_no, page_text in pages: # Select every page
         lines = [ln.strip() for ln in (page_text or "").splitlines()]
-        for ln in lines:
+        for ln in lines: # Iterate through every line
             if not ln:
                 continue
             
