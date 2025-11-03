@@ -40,16 +40,17 @@ This document describes the complete system architecture for the Research Paper 
 │  │                 │  │              │  │  (sentence-      │ │
 │  │ • Extract text  │  │ • Sentence   │  │   transformers)  │ │
 │  │ • Extract meta  │  │   grouping   │  │                  │ │
-│  │ • Page info     │  │ • Max 1000   │  │ • 384-dim        │ │
-│  │                 │  │   tokens     │  │   vectors        │ │
+│  │ • Page info     │  │ • Max 1000   │  │                  │ │
+│  │                 │  │        chars │  │ • 384-dim        │ │
+│  │                 │  │              │  │   vectors        │ │
 │  └─────────────────┘  └──────────────┘  └──────────────────┘ │
 │                                                              │
 └──────────────────────────────────────────────────────────────┘
                                 │
                                 │
-        ┌───────────────────────┼───────────────────────┐
-        │                       │                       │
-        ▼                       ▼                       ▼
+        ┌───────────────────────┼──────────────────────┐
+        │                       │                      │
+        ▼                       ▼                      ▼
 ┌───────────────┐    ┌──────────────────┐    ┌─────────────────┐
 │ PostgreSQL DB │    │  Qdrant Vector   │    │  Local File     │
 │  (ragdb)      │    │     Database     │    │  System (temp/) │
@@ -257,6 +258,25 @@ This document describes the complete system architecture for the Research Paper 
 └─────────────────────────────────────────┘
 ```
 
+### Realtime Streaming (SSE) Flow
+
+```
+Client (Accept: text/event-stream)
+  │ POST /query/stream { question, top_k, paper_ids?, model? }
+  ▼
+Backend builds contexts → reranks (CrossEncoder) → assembles prompt → streams LLM tokens
+  │
+  ├─ data: {"type":"token","content":"..."}
+  ├─ data: {"type":"token","content":"..."}
+  ├─ data: {"type":"metadata","citations":[...],"sources_used":[...],"confidence":0.xx,"paper_ids_used":[...]}
+  └─ data: {"type":"done"}
+```
+
+Operational details:
+- Initial `:\n\n` SSE comment flushes the stream early.
+- Response headers disable buffering and caching for low latency.
+- Frontend splits on double newlines and parses each `data:` line JSON.
+
 ### 3. Delete Pipeline
 
 ```
@@ -442,6 +462,50 @@ Search papers using semantic similarity.
   ]
 }
 ```
+
+### POST /query/stream (SSE)
+Stream tokenized answers in real time using Server-Sent Events.
+
+Request:
+- Method: POST
+- Headers: `Accept: text/event-stream`
+- Body (JSON):
+```json
+{
+  "question": "What are the applications of deep learning?",
+  "top_k": 5,
+  "paper_ids": [1, 3],
+  "model": "llama3"
+}
+```
+
+Response:
+- Content-Type: `text/event-stream; charset=utf-8`
+- Headers: `Cache-Control: no-cache, no-transform`, `Connection: keep-alive`, `X-Accel-Buffering: no`
+- Streamed events (each line begins with `data: ` and ends with a blank line):
+```
+:
+
+data: {"type":"token","content":"Deep"}
+
+data: {"type":"token","content":" learning"}
+
+data: {"type":"metadata","citations":[...],"sources_used":["paper1.pdf"],"confidence":0.82,"paper_ids_used":[5]}
+
+data: {"type":"done"}
+
+```
+
+Possible event types:
+- `token`: incremental chunk of the answer
+- `metadata`: citations, sources, confidence, paper_ids used
+- `done`: completion sentinel
+- `error`: error details if the stream fails
+
+Notes:
+- The server sends an initial SSE comment `:\n\n` to open the stream promptly.
+- The backend uses FastAPI `StreamingResponse` and streams from the LLM client.
+- Ensure reverse proxies (e.g., Nginx) don’t buffer SSE (handled via `X-Accel-Buffering: no`).
 
 ### DELETE /papers/{paper_id}
 Delete a paper and all its associated data.

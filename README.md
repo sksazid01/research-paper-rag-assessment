@@ -2,6 +2,10 @@
 
 A production-ready Retrieval-Augmented Generation (RAG) service for querying academic research papers using vector search and LLMs.
 
+
+**📋 Project Requirements:** See [Task Instructions.md](Task%20Instructions.md) for the original project requirements and implementation checklist.
+
+
 ## 🚀 Quick Start (One Command)
 
 **Prerequisites:** 
@@ -93,6 +97,9 @@ sudo kill -9 $(lsof -t -i:8000)
 ---
 
 ## 🏗️ Architecture
+
+**📖 Detailed Architecture:** See [SYSTEM_ARCHITECTURE.md](SYSTEM_ARCHITECTURE.md) for complete system design, data flow diagrams, and technical specifications.
+
 
 ![System Architecture](architecture.png)
 

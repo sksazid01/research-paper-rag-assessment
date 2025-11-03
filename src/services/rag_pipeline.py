@@ -510,7 +510,7 @@ def answer(
         answer_text = resp_data.get("response") or resp_data.get("raw", "")
     else:
         answer_text = str(llm_resp)
-calculate_confidence
+
     # Extract citations from answer
     citations = extract_citations_from_answer(answer_text, contexts)
 
