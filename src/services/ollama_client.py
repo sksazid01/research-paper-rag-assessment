@@ -22,11 +22,26 @@ from typing import Optional, Dict
 
 import requests
 
+# Base URL of Ollama daemon (default: localhost:11434)
 OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
 
 
 def _http_post(path: str, payload: Dict, timeout: int = 120) -> Optional[Dict]:
-    url = OLLAMA_BASE_URL.rstrip("/") + path
+    """
+    Send an HTTP POST request to the local Ollama server.
+
+    Args:
+        path: Relative API endpoint (e.g., /api/generate)
+        payload: JSON payload to send in the request
+        timeout: Maximum wait time in seconds before giving up
+
+    Returns:
+        - Parsed JSON response if the call succeeds.
+        - None if any failure occurs or daemon is not reachable.
+    """
+    
+    # http://localhost:11434/".rstrip("/") -> "http://localhost:11434"
+    url = OLLAMA_BASE_URL.rstrip("/") + path # rstrip() means "right strip"
     try:
         r = requests.post(url, json=payload, timeout=timeout)
         r.raise_for_status()
@@ -43,7 +58,14 @@ def _http_post(path: str, payload: Dict, timeout: int = 120) -> Optional[Dict]:
 
 
 def _cli_generate(prompt: str, model: str = "llama3", max_tokens: int = 512, temperature: float = 0.0) -> Dict:
-    # Fallback to calling `ollama generate <model> <prompt>` if available
+    """
+    Generate text by invoking the Ollama CLI tool directly.
+
+    This is used when the HTTP server is not running,
+    but the CLI `ollama` command is available.
+
+    Returns parsed JSON if possible, else returns raw text.
+    """
     try:
         cmd = ["ollama", "generate", model, prompt, "--json", "--max-tokens", str(max_tokens), "--temperature", str(temperature)]
         proc = subprocess.run(cmd, capture_output=True, text=True, check=True)
@@ -130,6 +152,17 @@ def generate_text_stream(prompt: str, model: str = "llama3", max_tokens: int = 5
         print(f"[ERROR] Ollama streaming failed: {e}", file=sys.stderr)
         yield f"[Error: {str(e)}]"
 
+
+
+
+
+
+
+"""
+Those below functions exist as optional hooks.
+Right now, you don’t need them — your embeddings come from SentenceTransformers.
+But they’re included for future flexibility, so if you ever replace MiniLM-L6-v2 with an Ollama embedding model, you can just redirect the call instead of rewriting the pipeline.
+"""
 
 def embeddings_available() -> bool:
     """Return True if Ollama supports an embeddings endpoint (best-effort).
